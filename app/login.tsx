@@ -1,23 +1,22 @@
 import LoginForm from "@/components/LoginForm";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 
 const page = () => {
   const backgroundColorStart = useThemeColor({}, "primary-300");
   const backgroundColorEnd = useThemeColor({}, "primary-600");
 
   return (
-    <View
+    <LinearGradient
+      colors={[backgroundColorStart, backgroundColorEnd]}
       style={{
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: backgroundColorStart,
-        backgroundImage: `linear-gradient(180deg, ${backgroundColorStart} 0%, ${backgroundColorEnd} 100%)`,
       }}
     >
       <LoginForm />
-    </View>
+    </LinearGradient>
   );
 };
 
