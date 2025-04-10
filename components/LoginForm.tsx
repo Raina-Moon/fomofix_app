@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { Text, TouchableOpacity, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
 import { useThemeColor } from "@/hooks/useThemeColor";
@@ -55,7 +61,6 @@ const LoginForm = () => {
 
   useEffect(() => {
     if (user) {
-        console.log("User logged in:", user); // Log user data for debugging
       Toast.show({
         type: "success",
         text1: `Welcome back, ${user.username}!`,
@@ -69,10 +74,11 @@ const LoginForm = () => {
       style={{
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent: "space-between",
         gap: 35,
-        width: "80%",
+        width: "100%",
         flex: 1,
+        marginTop: 40,
       }}
     >
       <Text
@@ -81,6 +87,8 @@ const LoginForm = () => {
           color: white,
           fontSize: 20,
           fontWeight: "bold",
+          marginTop: 20,
+          marginBottom: 40,
         }}
       >
         Stay On, Badge Up
@@ -88,91 +96,97 @@ const LoginForm = () => {
         Share the Win!
       </Text>
 
-      <View
-        style={{
-          width: "100%",
-          backgroundColor: white,
-          borderRadius: 16,
-          padding: 16,
-        }}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
-        <TouchableOpacity onPress={() => router.push("/")}>
-          <GoBackArrow />
-        </TouchableOpacity>
-
         <View
           style={{
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 8,
+            width: "90%",
+            backgroundColor: white,
+            borderRadius: 16,
+            padding: 16,
           }}
         >
-          <Text
+          <TouchableOpacity onPress={() => router.push("/")}>
+            <GoBackArrow />
+          </TouchableOpacity>
+
+          <View
             style={{
-              color: textColor,
-              fontSize: 16,
-              marginVertical: 16,
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 8,
             }}
           >
-            Logo
-          </Text>
+            <Text
+              style={{
+                color: textColor,
+                fontSize: 16,
+                marginVertical: 16,
+              }}
+            >
+              Logo
+            </Text>
 
-          <GlobalInput
-            label="email"
-            type="email"
-            id="email"
-            value={email}
-            placeholder="email"
-            onChange={setEmail}
-            error={emailError}
-          />
+            <GlobalInput
+              label="email"
+              type="email"
+              id="email"
+              value={email}
+              placeholder="email"
+              onChange={setEmail}
+              error={emailError}
+            />
 
-          <GlobalInput
-            label="password"
-            type="password"
-            id="password"
-            value={password}
-            placeholder="password"
-            onChange={setPassword}
-            error={passwordError}
-          />
+            <GlobalInput
+              label="password"
+              type="password"
+              id="password"
+              value={password}
+              placeholder="password"
+              onChange={setPassword}
+              error={passwordError}
+            />
 
-          <GlobalButton onPress={handleSubmit} style={{ marginTop: 16 }}>
-            log in
-          </GlobalButton>
+            <GlobalButton onPress={handleSubmit} style={{ marginTop: 16 }}>
+              log in
+            </GlobalButton>
+          </View>
+
+          <TouchableOpacity
+            onPress={() => router.push("/forgot-password" as any)}
+          >
+            <Text
+              style={{
+                color: primary600,
+                fontSize: 12,
+                textAlign: "center",
+                marginTop: 16,
+              }}
+            >
+              Forgot your password? Fix it here!
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => router.push("/signup" as any)}>
+            <Text
+              style={{
+                color: primary600,
+                fontSize: 12,
+                textAlign: "center",
+                marginTop: 16,
+              }}
+            >
+              Need an account? Sign up here
+            </Text>
+          </TouchableOpacity>
         </View>
-
-        <TouchableOpacity onPress={() => router.push("/forgot-password" as any)}>
-          <Text
-            style={{
-              color: primary500,
-              fontSize: 12,
-              textAlign: "center",
-              marginTop: 16,
-            }}
-          >
-            Forgot your password? Fix it here!
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => router.push("/signup" as any)}>
-          <Text
-            style={{
-              color: primary600,
-              fontSize: 12,
-              textAlign: "center",
-              marginTop: 16,
-            }}
-          >
-            Need an account? Sign up here
-          </Text>
-        </TouchableOpacity>
-      </View>
+      </KeyboardAvoidingView>
 
       <Text
         style={{
-          marginTop: "auto",
-          bottom: 10,
+          marginBottom: 20,
           fontSize: 6,
           color: white,
           textAlign: "center",
