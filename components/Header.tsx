@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from "react";
-import { View, Text, TouchableOpacity, Image } from "react-native";
+import { View, Text, TouchableOpacity, Image,StatusBar } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "../contexts/AuthContext";
 import { useThemeColor } from "@/hooks/useThemeColor";
@@ -8,10 +8,8 @@ const Header = () => {
   const router = useRouter();
   const { user, getProfile, isLoggedIn } = useAuth();
   const backgroundColor = useThemeColor({}, "background");
-  const tintColor = useThemeColor({}, "tint");
   const primary500 = useThemeColor({}, "primary-500");
   const gray300 = useThemeColor({}, "gray-300");
-  const gray900 = useThemeColor({}, "gray-900");
 
   const fetchProfile = useCallback(async () => {
     if (!isLoggedIn || !user?.id || user.profile_image) {
@@ -34,7 +32,8 @@ const handleNavigation = () => {
     <View
       style={{
         width: "100%",
-        height: 60,
+        height: 60 + (StatusBar.currentHeight ?? 0),
+        paddingTop: StatusBar.currentHeight ?? 0,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
@@ -42,7 +41,6 @@ const handleNavigation = () => {
         backgroundColor,
         borderBottomWidth: 1,
         borderBottomColor: gray300,
-        position: "absolute",
         top: 0,
         zIndex: 50,
       }}
