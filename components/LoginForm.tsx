@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useRouter } from "expo-router";
@@ -26,7 +26,7 @@ const LoginForm = () => {
     return re.test(email);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     setEmailError("");
     setPasswordError("");
 
@@ -51,17 +51,18 @@ const LoginForm = () => {
         setPasswordError("Login didn’t work... mind trying again?");
       }
     }
-  };
+  }, [email, password, login]);
 
   useEffect(() => {
     if (user) {
+        console.log("User logged in:", user); // Log user data for debugging
       Toast.show({
         type: "success",
         text1: `Welcome back, ${user.username}!`,
       });
       router.push("/");
     }
-  }, [user, router]);
+  }, [user]);
 
   return (
     <View
@@ -71,6 +72,7 @@ const LoginForm = () => {
         justifyContent: "center",
         gap: 35,
         width: "80%",
+        flex: 1,
       }}
     >
       <Text
@@ -169,7 +171,7 @@ const LoginForm = () => {
 
       <Text
         style={{
-          position: "absolute",
+          marginTop: "auto",
           bottom: 10,
           fontSize: 6,
           color: white,
