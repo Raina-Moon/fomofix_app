@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import GlobalInput from "@/components/ui/GlobalInput";
-import GlobalButton from "@/components/ui/GlobalButton";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import GoBackArrow from "@/assets/icons/GoBackArrow";
+import GlobalInput from "./ui/GlobalInput";
+import GlobalButton from "./ui/GlobalButton";
 
 const LoginForm = () => {
   const router = useRouter();
@@ -119,10 +119,9 @@ const LoginForm = () => {
             label="email"
             type="email"
             id="email"
-            name="email"
             value={email}
             placeholder="email"
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={setEmail}
             error={emailError}
           />
 
@@ -130,19 +129,18 @@ const LoginForm = () => {
             label="password"
             type="password"
             id="password"
-            name="password"
             value={password}
             placeholder="password"
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={setPassword}
             error={passwordError}
           />
 
-          <GlobalButton type="submit" className="mt-4">
+          <GlobalButton onPress={handleSubmit} style={{ marginTop: 16 }}>
             log in
           </GlobalButton>
         </View>
 
-        <TouchableOpacity onPress={() => router.push("/forgot-password")}>
+        <TouchableOpacity onPress={() => router.push("/forgot-password" as any)}>
           <Text
             style={{
               color: primary500,
@@ -155,7 +153,7 @@ const LoginForm = () => {
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push("/signup")}>
+        <TouchableOpacity onPress={() => router.push("/signup" as any)}>
           <Text
             style={{
               color: primary600,
