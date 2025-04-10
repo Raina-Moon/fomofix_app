@@ -1,10 +1,10 @@
 import React from "react";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { TextInput, View } from "react-native";
+import { Text, TextInput, View } from "react-native";
 
 type InputProps = {
   id?: string;
-  Text?: string;
+  label?: string;
   type?: string;
   name?: string;
   value?: string;
@@ -15,7 +15,7 @@ type InputProps = {
 };
 
 const GlobalInput: React.FC<InputProps> = ({
-  Text,
+  label,
   id,
   type = "text",
   name,
@@ -29,6 +29,7 @@ const GlobalInput: React.FC<InputProps> = ({
   const gray300 = useThemeColor({}, "gray-300");
   const primary400 = useThemeColor({}, "primary-400");
   const red500 = "#EF4444";
+  const white = "#FFFFFF";
 
   return (
     <View
@@ -36,6 +37,7 @@ const GlobalInput: React.FC<InputProps> = ({
         width: "100%",
         padding: 4,
         flexDirection: "column",
+        gap: 4,
       }}
     >
       {label && (
@@ -43,7 +45,6 @@ const GlobalInput: React.FC<InputProps> = ({
           style={{
             color: gray900,
             fontSize: 14,
-            marginBottom: 4,
             textAlign: "left",
           }}
         >
@@ -52,22 +53,22 @@ const GlobalInput: React.FC<InputProps> = ({
       )}
       <TextInput
         id={id}
-        name={name}
-        type={type}
         value={value}
         placeholder={placeholder}
         onChangeText={onChange}
         editable={!disabled}
         keyboardType={type === "email" ? "email-address" : "default"}
         secureTextEntry={type === "password"}
+        placeholderTextColor={gray300}
         style={{
           width: "100%",
           padding: 8,
           borderRadius: 6,
-          backgroundColor: error ? red500 : disabled ? gray300 : primary400,
+          borderWidth: 1,
+          borderColor: error ? red500 : disabled ? gray300 : primary400,
+          backgroundColor: disabled ? gray300 : white,
           color: gray900,
           fontSize: 14,
-          outline: "none",
         }}
       />
       {error && (
