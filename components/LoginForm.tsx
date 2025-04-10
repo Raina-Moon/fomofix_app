@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import TouchableOpacity from "next/link";
 import { useAuth } from "../contexts/AuthContext";
 import GlobalInput from "@/components/ui/GlobalInput";
 import GlobalButton from "@/components/ui/GlobalButton";
