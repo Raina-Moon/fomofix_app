@@ -6,7 +6,6 @@ type InputProps = {
   id?: string;
   label?: string;
   type?: string;
-  name?: string;
   value?: string;
   placeholder?: string;
   onChange?: (text: string) => void;
@@ -18,7 +17,6 @@ const GlobalInput: React.FC<InputProps> = ({
   label,
   id,
   type = "text",
-  name,
   value,
   placeholder,
   onChange,
