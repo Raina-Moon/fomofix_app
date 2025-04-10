@@ -26,7 +26,7 @@ const Header = () => {
 
 const handleNavigation = () => {
     const path:string = isLoggedIn && user ? `/dashboard/${user.id}` : "/login"
-    router.push(path);
+    router.push(path as any);
   };
 
 
