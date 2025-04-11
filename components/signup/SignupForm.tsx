@@ -162,6 +162,7 @@ const SignupForm = () => {
                 fontSize: 20,
                 textAlign: "center",
                 fontWeight: "bold",
+                color: gray900,
               }}
             >
               {steps[step - 1]}
@@ -208,7 +209,6 @@ const SignupForm = () => {
                 style={{
                   color: gray900,
                   fontSize: 10,
-                  textAlign: "center",
                   marginTop: 12,
                 }}
               >
@@ -306,7 +306,7 @@ const SignupForm = () => {
 
         <Text
           style={{
-            color: white,
+            color: gray900,
             fontSize: 6,
             textAlign: "center",
             marginTop: 20,
