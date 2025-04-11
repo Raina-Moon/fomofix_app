@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useRouter } from "expo-router";
@@ -17,7 +17,6 @@ const LoginForm = () => {
   const { login, user } = useAuth();
 
   const textColor = useThemeColor({}, "text");
-  const primary500 = useThemeColor({}, "primary-500");
   const primary600 = useThemeColor({}, "primary-600");
   const white = "#fff";
 
@@ -26,7 +25,7 @@ const LoginForm = () => {
     return re.test(email);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     setEmailError("");
     setPasswordError("");
 
@@ -51,7 +50,7 @@ const LoginForm = () => {
         setPasswordError("Login didn’t work... mind trying again?");
       }
     }
-  };
+  }, [email, password, login]);
 
   useEffect(() => {
     if (user) {
@@ -61,16 +60,17 @@ const LoginForm = () => {
       });
       router.push("/");
     }
-  }, [user, router]);
+  }, [user]);
 
   return (
     <View
       style={{
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
-        gap: 35,
-        width: "80%",
+        justifyContent: "flex-start",
+        width: "100%",
+        flex: 1,
+        marginTop: 40,
       }}
     >
       <Text
@@ -78,6 +78,7 @@ const LoginForm = () => {
           textAlign: "center",
           color: white,
           fontSize: 20,
+          marginBottom:20,
           fontWeight: "bold",
         }}
       >
@@ -88,7 +89,7 @@ const LoginForm = () => {
 
       <View
         style={{
-          width: "100%",
+          width: 300,
           backgroundColor: white,
           borderRadius: 16,
           padding: 16,
@@ -140,10 +141,12 @@ const LoginForm = () => {
           </GlobalButton>
         </View>
 
-        <TouchableOpacity onPress={() => router.push("/forgot-password" as any)}>
+        <TouchableOpacity
+          onPress={() => router.push("/forgot-password" as any)}
+        >
           <Text
             style={{
-              color: primary500,
+              color: primary600,
               fontSize: 12,
               textAlign: "center",
               marginTop: 16,
@@ -169,8 +172,7 @@ const LoginForm = () => {
 
       <Text
         style={{
-          position: "absolute",
-          bottom: 10,
+          marginTop: 20,
           fontSize: 6,
           color: white,
           textAlign: "center",
