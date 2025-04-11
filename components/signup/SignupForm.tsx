@@ -174,6 +174,8 @@ const SignupForm = () => {
           style={{
             padding: 16,
             borderRadius: 16,
+            width: "100%",
+            marginTop: 20,
           }}
         >
           {step === 1 && (
@@ -222,15 +224,23 @@ const SignupForm = () => {
 
           {step === 2 && (
             <>
-              <GlobalInput
-                id="code"
-                label="Verification Code"
-                type="numeric"
-                placeholder="Enter 4-digit code"
-                value={code}
-                onChange={setCode}
-                error={codeError}
-              />
+              <View style={{ alignItems: "flex-start" }}>
+                <GlobalInput
+                  id="code"
+                  label="Verification Code"
+                  type="numeric"
+                  placeholder="Enter 4-digit code"
+                  value={code}
+                  onChange={setCode}
+                  error={codeError}
+                  style={{
+                    backgroundColor: "transparent",
+                    borderWidth: 0,
+                    borderBottomWidth: 1,
+                    width: "100%",
+                  }}
+                />
+              </View>
               <GlobalButton
                 onPress={handleVerifyCode}
                 disabled={code.length !== 4}
@@ -255,6 +265,11 @@ const SignupForm = () => {
                 error={
                   passwordErrors.length > 0 ? passwordErrors.join(" ") : ""
                 }
+                style={{
+                  backgroundColor: "transparent",
+                  borderWidth: 0,
+                  borderBottomWidth: 1,
+                }}
               />
               <GlobalInput
                 id="confirm-password"
@@ -264,6 +279,11 @@ const SignupForm = () => {
                 value={confirmPassword}
                 onChange={handleConfirmPasswordChange}
                 error={confirmPasswordError}
+                style={{
+                  backgroundColor: "transparent",
+                  borderWidth: 0,
+                  borderBottomWidth: 1,
+                }}
               />
               <GlobalButton
                 onPress={handlePasswordSubmit}
@@ -282,15 +302,22 @@ const SignupForm = () => {
 
           {step === 4 && (
             <>
-              <GlobalInput
-                id="username"
-                label="Username"
-                type="text"
-                placeholder="Username"
-                value={username}
-                onChange={setUsername}
-                error={usernameError}
-              />
+              <View style={{ width: "100%" }}>
+                <GlobalInput
+                  id="username"
+                  label="Username"
+                  type="text"
+                  placeholder="Username"
+                  value={username}
+                  onChange={setUsername}
+                  error={usernameError}
+                  style={{
+                    backgroundColor: "transparent",
+                    borderWidth: 0,
+                    borderBottomWidth: 1,
+                  }}
+                />
+              </View>
               <GlobalButton
                 onPress={handleUsernameSubmit}
                 disabled={!username}
