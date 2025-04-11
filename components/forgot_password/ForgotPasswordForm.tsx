@@ -20,7 +20,10 @@ const ForgotPasswordForm = () => {
         type: "success",
         text1: "Check your email for the reset code!",
       });
-      router.push({pathname:"/reset-password", params:{ email: encodeURIComponent(email) }});
+      router.push({
+        pathname: "/reset-password",
+        params: { email: encodeURIComponent(email) },
+      });
     } catch (error) {
       Toast.show({ type: "error", text1: "Email sending failed!" });
     }
