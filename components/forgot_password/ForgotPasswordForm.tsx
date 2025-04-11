@@ -31,10 +31,9 @@ const ForgotPasswordForm = () => {
 
   const gray900 = useThemeColor({}, "gray-900");
   const primary600 = useThemeColor({}, "primary-600");
-  const white = "#fff";
 
   return (
-    <View>
+    <View style={{ flex: 1, alignItems: "center" }}>
       <View
         style={{
           flexDirection: "row",
@@ -46,17 +45,22 @@ const ForgotPasswordForm = () => {
         <TouchableOpacity onPress={() => router.back()}>
           <GoBackArrow />
         </TouchableOpacity>
-        <Text
-          style={{
-            fontSize: 20,
-            fontWeight: "bold",
-            color: gray900,
-          }}
+
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >
-          Drop your email
-          {"\n"}
-          we'll send you the code!
-        </Text>
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "bold",
+              color: gray900,
+            }}
+          >
+            Drop your email
+            {"\n"}
+            we'll send you the code!
+          </Text>
+        </View>
       </View>
 
       <View
@@ -97,7 +101,6 @@ const ForgotPasswordForm = () => {
           marginTop: 20,
           textAlign: "center",
           fontSize: 6,
-          color: white,
         }}
       >
         Made by @Raina
