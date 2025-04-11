@@ -86,7 +86,7 @@ const SignupForm = () => {
       <LinearGradient
         style={{
           flex: 1,
-          justifyContent: "space-between",
+          justifyContent: "flex-start",
           alignItems: "center",
         }}
         colors={[primary300, primary600]}
@@ -107,7 +107,7 @@ const SignupForm = () => {
 
         <View
           style={{
-            width: "100%",
+            width: "90%",
             padding: 16,
             borderRadius: 16,
             backgroundColor: white,
