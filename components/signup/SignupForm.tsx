@@ -122,6 +122,14 @@ const SignupForm = () => {
     }
   }, [username, email, password, signup, router]);
 
+  const handleBack = () => {
+    if (step === 1) {
+      router.push("/login");
+    } else {
+      setStep((prev) => (prev - 1) as 1 | 2 | 3 | 4);
+    }
+  };
+
   const primary300 = useThemeColor({}, "primary-300");
   const primary600 = useThemeColor({}, "primary-600");
   const gray900 = useThemeColor({}, "gray-900");
@@ -141,25 +149,24 @@ const SignupForm = () => {
           style={{
             flexDirection: "row",
             alignItems: "center",
-            justifyContent: "space-between",
             width: "90%",
-            marginTop: 40,
+            marginTop: 15,
           }}
         >
-          <TouchableOpacity onPress={() => router.push("/")}>
+          <TouchableOpacity onPress={handleBack}>
             <GoBackArrow />
           </TouchableOpacity>
-          <Text
-            style={{
-              fontSize: 20,
-              textAlign: "center",
-              marginTop: 40,
-              fontWeight: "bold",
-              marginBottom: 20,
-            }}
-          >
-            {steps[step - 1]}
-          </Text>
+          <View style={{ flex: 1, alignItems: "center" }}>
+            <Text
+              style={{
+                fontSize: 20,
+                textAlign: "center",
+                fontWeight: "bold",
+              }}
+            >
+              {steps[step - 1]}
+            </Text>
+          </View>
         </View>
 
         <View
@@ -170,24 +177,33 @@ const SignupForm = () => {
         >
           {step === 1 && (
             <>
-              <GlobalInput
-                id="email"
-                label="Email"
-                type="email"
-                placeholder="user@example.com"
-                value={email}
-                onChange={handleEmailChange}
-                error={emailError}
-              />
-              <GlobalButton
-                onPress={handleSendCode}
-                disabled={!email || !!emailError}
-                style={{ marginTop: 16, width: "100%" }}
-              >
-                <Text style={{ color: white, fontWeight: "bold" }}>
-                  Send Verification Code
-                </Text>
-              </GlobalButton>
+              <View style={{ alignItems: "center" }}>
+                <GlobalInput
+                  id="email"
+                  label="Email"
+                  type="email"
+                  placeholder="user@example.com"
+                  value={email}
+                  onChange={handleEmailChange}
+                  error={emailError}
+                  style={{
+                    backgroundColor: "transparent",
+                    borderWidth: 0,
+                    borderBottomWidth: 1,
+                  }}
+                />
+              </View>
+              <View style={{ alignItems: "center" }}>
+                <GlobalButton
+                  onPress={handleSendCode}
+                  disabled={!email || !!emailError}
+                  style={{ marginTop: 16, width: "100%" }}
+                >
+                  <Text style={{ color: white, fontWeight: "bold" }}>
+                    Send Verification Code
+                  </Text>
+                </GlobalButton>
+              </View>
               <Text
                 style={{
                   color: gray900,
