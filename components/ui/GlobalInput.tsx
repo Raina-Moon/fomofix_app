@@ -11,6 +11,7 @@ type InputProps = {
   onChange?: (text: string) => void;
   error?: string;
   disabled?: boolean;
+  style?: object;
 };
 
 const GlobalInput: React.FC<InputProps> = ({
@@ -22,6 +23,7 @@ const GlobalInput: React.FC<InputProps> = ({
   onChange,
   error,
   disabled = false,
+  style,
 }) => {
   const gray900 = useThemeColor({}, "gray-900");
   const gray300 = useThemeColor({}, "gray-300");
@@ -67,6 +69,7 @@ const GlobalInput: React.FC<InputProps> = ({
           backgroundColor: disabled ? gray300 : white,
           color: gray900,
           fontSize: 14,
+          ...(style ||{}),
         }}
       />
       {error && (
