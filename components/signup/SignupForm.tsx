@@ -135,12 +135,13 @@ const SignupForm = () => {
           justifyContent: "flex-start",
           alignItems: "center",
         }}
-        colors={[white, primary600]}
+        colors={[white, primary300]}
       >
         <View
           style={{
             flexDirection: "row",
             alignItems: "center",
+            justifyContent: "space-between",
             width: "90%",
             marginTop: 40,
           }}
