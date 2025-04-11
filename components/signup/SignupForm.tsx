@@ -7,18 +7,37 @@ import Toast from "react-native-toast-message";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { LinearGradient } from "expo-linear-gradient";
+import GoBackArrow from "@/assets/icons/GoBackArrow";
 
 const SignupForm = () => {
   const { signup } = useAuth();
   const router = useRouter();
 
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState(
+    "Please enter an email address you own."
+  );
+  const [code, setCode] = useState("");
+  const [codeError, setCodeError] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [username, setUsername] = useState("");
+  const [usernameError, setUsernameError] = useState("");
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
-  const [error, setError] = useState<string | null>(null);
+
+  const steps = [
+    "Sign Up (1/4)",
+    "Sign Up (2/4)",
+    "Sign Up (3/4)",
+    "Sign Up (4/4)",
+  ];
+
+  const validateEmail = (email: string) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
 
   const validatePassword = (password: string) => {
     const errors = [];
@@ -34,6 +53,36 @@ const SignupForm = () => {
     return [`Missing ${errors.length}: ${errors.join(", ")}.`];
   };
 
+  const handleEmailChange = (text: string) => {
+    setEmail(text);
+    setEmailError(
+      text && !validateEmail(text)
+        ? "Invalid email format."
+        : text
+        ? ""
+        : "Please enter an email address you own."
+    );
+  };
+
+  const handleSendCode = () => {
+    if (!validateEmail(email)) return;
+    // Mock 4-digit code for email verification (replace with backend call)
+    const mockCode = Math.floor(1000 + Math.random() * 9000).toString();
+    console.log(`Sending code ${mockCode} to ${email}`); // 백엔드 대체
+    Toast.show({ type: "success", text1: "Verification code sent!" });
+    setStep(2);
+  };
+
+  const handleVerifyCode = () => {
+    // Mock verification (replace with backend call)
+    const mockCode = "1234"; // Replace with the actual code sent to the email
+    if (code === mockCode) {
+      setStep(3);
+    } else {
+      setCodeError("Invalid verification code.");
+    }
+  };
+
   const handlePasswordChange = (text: string) => {
     setPassword(text);
     const errors = validatePassword(text);
@@ -47,20 +96,16 @@ const SignupForm = () => {
     );
   };
 
-  const handleSubmit = useCallback(async () => {
-    setError(null);
+  const handlePasswordSubmit = () => {
+    if (passwordErrors.length > 0 || confirmPasswordError) return;
+    setStep(4);
+  };
 
-    const passwordValidationErrors = validatePassword(password);
-    if (passwordValidationErrors.length > 0) {
-      setPasswordErrors(passwordValidationErrors);
+  const handleUsernameSubmit = useCallback(async () => {
+    if (!username) {
+      setUsernameError("Please enter a username.");
       return;
     }
-
-    if (password !== confirmPassword) {
-      Toast.show({ type: "error", text1: "Passwords do not match!" });
-      return;
-    }
-
     try {
       await signup(username, email, password);
       Toast.show({
@@ -70,15 +115,16 @@ const SignupForm = () => {
       router.push("/login");
     } catch (error: any) {
       if (error.message === "Username is already taken") {
-        setError("username is already taken!");
+        setUsernameError("Username is already taken!");
       } else {
-        setError("Signup failed!");
+        setUsernameError("Signup failed!");
       }
     }
-  }, [username, email, password, confirmPassword, signup, router]);
+  }, [username, email, password, signup, router]);
 
   const primary300 = useThemeColor({}, "primary-300");
   const primary600 = useThemeColor({}, "primary-600");
+  const gray900 = useThemeColor({}, "gray-900");
   const white = "#fff";
 
   return (
@@ -89,92 +135,156 @@ const SignupForm = () => {
           justifyContent: "flex-start",
           alignItems: "center",
         }}
-        colors={[primary300, primary600]}
+        colors={[white, primary600]}
       >
-        <Text
+        <View
           style={{
-            color: white,
-            fontSize: 20,
-            textAlign: "center",
+            flexDirection: "row",
+            alignItems: "center",
+            width: "90%",
             marginTop: 40,
-            fontWeight: "bold",
-            marginBottom: 20,
           }}
         >
-          Step Up, Badge Up
-          {"\n"}Create Your Account!
-        </Text>
+          <TouchableOpacity onPress={() => router.push("/")}>
+            <GoBackArrow />
+          </TouchableOpacity>
+          <Text
+            style={{
+              fontSize: 20,
+              textAlign: "center",
+              marginTop: 40,
+              fontWeight: "bold",
+              marginBottom: 20,
+            }}
+          >
+            {steps[step - 1]}
+          </Text>
+        </View>
 
         <View
           style={{
-            width: "90%",
             padding: 16,
             borderRadius: 16,
-            backgroundColor: white,
           }}
         >
-          <View
-            style={{
-              flexDirection: "column",
-              gap: 12,
-              alignItems: "center",
-              width: "100%",
-            }}
-          >
-            <GlobalInput
-              id="email"
-              label="email"
-              type="email"
-              placeholder="user@example.com"
-              value={email}
-              onChange={setEmail}
-            />
+          {step === 1 && (
+            <>
+              <GlobalInput
+                id="email"
+                label="Email"
+                type="email"
+                placeholder="user@example.com"
+                value={email}
+                onChange={handleEmailChange}
+                error={emailError}
+              />
+              <GlobalButton
+                onPress={handleSendCode}
+                disabled={!email || !!emailError}
+                style={{ marginTop: 16, width: "100%" }}
+              >
+                <Text style={{ color: white, fontWeight: "bold" }}>
+                  Send Verification Code
+                </Text>
+              </GlobalButton>
+              <Text
+                style={{
+                  color: gray900,
+                  fontSize: 10,
+                  textAlign: "center",
+                  marginTop: 12,
+                }}
+              >
+                Sending the verification code may take some time, up to 3
+                minutes. The code will be sent to the email address you
+                provided. If you don’t receive it, please check your spam folder
+                or email settings.
+              </Text>
+            </>
+          )}
 
-            <GlobalInput
-              id="password"
-              label="password"
-              type="password"
-              placeholder="password"
-              value={password}
-              onChange={handlePasswordChange}
-              error={passwordErrors.length > 0 ? passwordErrors.join(" ") : ""}
-            />
+          {step === 2 && (
+            <>
+              <GlobalInput
+                id="code"
+                label="Verification Code"
+                type="numeric"
+                placeholder="Enter 4-digit code"
+                value={code}
+                onChange={setCode}
+                error={codeError}
+              />
+              <GlobalButton
+                onPress={handleVerifyCode}
+                disabled={code.length !== 4}
+                style={{ marginTop: 16, width: "100%" }}
+              >
+                <Text style={{ color: white, fontWeight: "bold" }}>
+                  Verify Code
+                </Text>
+              </GlobalButton>
+            </>
+          )}
 
-            <GlobalInput
-              id="confirm-password"
-              label="confirm password"
-              type="password"
-              placeholder="confirm Password"
-              value={confirmPassword}
-              onChange={handleConfirmPasswordChange}
-              error={confirmPasswordError}
-            />
+          {step === 3 && (
+            <>
+              <GlobalInput
+                id="password"
+                label="Password"
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={handlePasswordChange}
+                error={
+                  passwordErrors.length > 0 ? passwordErrors.join(" ") : ""
+                }
+              />
+              <GlobalInput
+                id="confirm-password"
+                label="Confirm Password"
+                type="password"
+                placeholder="Confirm Password"
+                value={confirmPassword}
+                onChange={handleConfirmPasswordChange}
+                error={confirmPasswordError}
+              />
+              <GlobalButton
+                onPress={handlePasswordSubmit}
+                disabled={
+                  passwordErrors.length > 0 ||
+                  !!confirmPasswordError ||
+                  !password ||
+                  !confirmPassword
+                }
+                style={{ marginTop: 16, width: "100%" }}
+              >
+                <Text style={{ color: white, fontWeight: "bold" }}>Next</Text>
+              </GlobalButton>
+            </>
+          )}
 
-            <GlobalInput
-              id="username"
-              label="username"
-              type="text"
-              placeholder="Username"
-              value={username}
-              onChange={setUsername}
-              error={error || ""}
-            />
-
-            <GlobalButton onPress={handleSubmit}>sign up</GlobalButton>
-          </View>
-
-          <TouchableOpacity onPress={() => router.push("/login")}>
-            <Text
-              style={{
-                color: primary600,
-                fontSize: 12,
-                textAlign: "center",
-                marginTop: 16,
-              }}
-            >
-              Have an account? Hit login!
-            </Text>
-          </TouchableOpacity>
+          {step === 4 && (
+            <>
+              <GlobalInput
+                id="username"
+                label="Username"
+                type="text"
+                placeholder="Username"
+                value={username}
+                onChange={setUsername}
+                error={usernameError}
+              />
+              <GlobalButton
+                onPress={handleUsernameSubmit}
+                disabled={!username}
+                style={{ marginTop: 16, width: "100%" }}
+              >
+                <Text style={{ color: white, fontWeight: "bold" }}>
+                  Sign Up
+                </Text>
+              </GlobalButton>
+            </>
+          )}
         </View>
 
         <Text
