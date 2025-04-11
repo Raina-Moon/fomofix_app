@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import GoBackArrow from "@/assets/icons/GoBackArrow";
-import GlobalInput from "./ui/GlobalInput";
-import GlobalButton from "./ui/GlobalButton";
+import GlobalInput from "../ui/GlobalInput";
+import GlobalButton from "../ui/GlobalButton";
 
 const LoginForm = () => {
   const router = useRouter();
