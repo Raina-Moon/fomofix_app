@@ -168,13 +168,15 @@ const ChartComponent = ({
     return Math.max(...nailedDurations, ...failedDurations, 5);
   }, [chartData]);
 
-  const chartWidth = Dimensions.get("window").width - 48; // $4 패딩 양쪽 고려
+  const chartWidth = Dimensions.get("window").width - 88;
 
   const barData = chartData.map((item) => ({
     label: item.date || item.time || "",
     stacks: [
-      { value: item.nailedDuration || 0, color: "#60A5FA" }, // $primary400
-      ...(isOwnProfile ? [{ value: item.failedDuration || 0, color: "#EF4444" }] : []),
+      { value: item.nailedDuration || 0, color: "#60A5FA" },
+      ...(isOwnProfile
+        ? [{ value: item.failedDuration || 0, color: "#EF4444" }]
+        : []),
     ],
   }));
 
@@ -274,21 +276,16 @@ const ChartComponent = ({
           width={chartWidth}
           height={300}
           data={barData}
-          stackColors={["#60A5FA", "#EF4444"]}
           barWidth={isOwnProfile ? 20 : 10}
           spacing={isOwnProfile ? 10 : 5}
           noOfSections={Math.ceil((maxDuration + 10) / 10)}
           maxValue={maxDuration + 10}
           yAxisTextStyle={styles.axisText}
           xAxisLabelTextStyle={styles.axisText}
-          yAxisLabel="min"
-          xAxisLabelCount={chartData.length}
-          formatXLabel={(label) =>
+          formatYLabel={(label: any) =>
             chartPeriod === "day" ? label : label.slice(0, 6)
           }
           showFractionalValues={false}
-          showGrid
-          gridColor="#E5E7EB" // $gray200
           isAnimated
         />
       </Box>
@@ -298,7 +295,7 @@ const ChartComponent = ({
 
 const styles = StyleSheet.create({
   axisText: {
-    color: "#6B7280", // $gray500
+    color: "#6B7280",
     fontSize: 12,
   },
 });
