@@ -66,21 +66,28 @@ const ForgotPasswordForm = () => {
       <View
         style={{
           width: "90%",
-          marginTop: 20,
+          marginTop: 40,
           justifyContent: "center",
           alignItems: "center",
         }}
       >
         <GlobalInput
-          label="email"
+          label="Email"
           type="email"
           id="email"
           placeholder="email@example.com"
           value={email}
           onChange={setEmail}
+          style={{
+            backgroundColor: "transparent",
+            borderWidth: 0,
+            borderBottomWidth: 1,
+          }}
         />
 
-        <GlobalButton onPress={handleSubmit}>send</GlobalButton>
+        <View style={{ width: "100%", marginTop: 15 }}>
+          <GlobalButton onPress={handleSubmit}>send</GlobalButton>
+        </View>
       </View>
 
       <TouchableOpacity onPress={() => router.push("/signup")}>
@@ -89,7 +96,7 @@ const ForgotPasswordForm = () => {
             fontSize: 14,
             color: primary600,
             textAlign: "center",
-            marginTop: 20,
+            marginTop: 40,
           }}
         >
           Need an account? Sign up here
@@ -98,7 +105,7 @@ const ForgotPasswordForm = () => {
 
       <Text
         style={{
-          marginTop: 20,
+          marginTop: 30,
           textAlign: "center",
           fontSize: 6,
         }}
