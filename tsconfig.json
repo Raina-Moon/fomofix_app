@@ -6,10 +6,16 @@
       "@/*": [
         "./*"
       ],
+      "gluestack-ui.config":[
+        "./gluestack-ui.config.ts"
+      ],
       "tailwind.config": [
         "./tailwind.config.js"
       ]
-    }
+    },
+    "types" : [
+      "@gluestack-ui/themed"
+    ]
   },
   "include": [
     "**/*.ts",

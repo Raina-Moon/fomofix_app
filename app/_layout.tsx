@@ -45,7 +45,8 @@ export default function RootLayout() {
   const showHeader = !hideHeaderPaths.includes(pathname);
 
   return (
-    <GluestackUIProvider mode="light"><ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+    <GluestackUIProvider mode="light">
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <AuthProvider>
           <SafeAreaView style={{ flex: 1 }}>
             <Toast />
@@ -56,6 +57,7 @@ export default function RootLayout() {
             </Stack>
           </SafeAreaView>
         </AuthProvider>
-      </ThemeProvider></GluestackUIProvider>
+      </ThemeProvider>
+    </GluestackUIProvider>
   );
 }
