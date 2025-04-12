@@ -1,22 +1,8 @@
-"use client";
-
 import { useMemo } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import { Button } from "@/components/ui/button";
-import { ChartData, Goal } from "@/utils/api";
+import { Box, Text, Pressable } from "@gluestack-ui/themed";
+import { BarChart } from "react-native-gifted-charts";
+import { Dimensions, StyleSheet } from "react-native";
+import { ChartData, Goal } from "@/types";
 
 interface ChartComponentProps {
   nailedPosts: Goal[];
@@ -173,9 +159,7 @@ const ChartComponent = ({
       }
     });
 
-    const mergedData = Array.from(mergedDataMap.values());
-
-    return mergedData;
+    return Array.from(mergedDataMap.values());
   }, [nailedPosts, failedPosts, chartPeriod, isOwnProfile]);
 
   const maxDuration = useMemo(() => {
@@ -184,106 +168,139 @@ const ChartComponent = ({
     return Math.max(...nailedDurations, ...failedDurations, 5);
   }, [chartData]);
 
-  const chartConfig = {
-    nailedDuration: {
-      label: "Nailed It (min)",
-      color: "hsl(var(--primary-400))",
-    },
-    failedDuration: {
-      label: "Failed It (min)",
-      color: "#ef4444",
-    },
-  } satisfies ChartConfig;
+  const chartWidth = Dimensions.get("window").width - 48; // $4 패딩 양쪽 고려
+
+  const barData = chartData.map((item) => ({
+    label: item.date || item.time || "",
+    stacks: [
+      { value: item.nailedDuration || 0, color: "#60A5FA" }, // $primary400
+      ...(isOwnProfile ? [{ value: item.failedDuration || 0, color: "#EF4444" }] : []),
+    ],
+  }));
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Success Duration</CardTitle>
-        <CardDescription>
+    <Box
+      bg="$white"
+      borderRadius="$lg"
+      p="$4"
+      borderWidth={1}
+      borderColor="$gray300"
+      mb="$4"
+    >
+      {/* Header */}
+      <Box mb="$4">
+        <Text fontSize="$lg" fontWeight="$semibold">
+          Success Duration
+        </Text>
+        <Text fontSize="$sm" color="$gray600">
           {chartPeriod === "day" && "Last 24 Hours"}
           {chartPeriod === "week" && "Last 7 Days"}
           {chartPeriod === "month" && "Last 30 Days"}
           {chartPeriod === "year" && "This Year"}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex justify-end mb-4">
-          <div className="space-x-2">
-            <Button
-              variant={chartPeriod === "day" ? "default" : "outline"}
-              onClick={() => setChartPeriod("day")}
-            >
-              Day
-            </Button>
-            <Button
-              variant={chartPeriod === "week" ? "default" : "outline"}
-              onClick={() => setChartPeriod("week")}
-            >
-              Week
-            </Button>
-            <Button
-              variant={chartPeriod === "month" ? "default" : "outline"}
-              onClick={() => setChartPeriod("month")}
-            >
-              Month
-            </Button>
-            <Button
-              variant={chartPeriod === "year" ? "default" : "outline"}
-              onClick={() => setChartPeriod("year")}
-            >
-              Year
-            </Button>
-          </div>
-        </div>
-        <ChartContainer config={chartConfig} className="h-[300px] w-full">
-          <BarChart accessibilityLayer data={chartData}>
-            <CartesianGrid vertical={false} stroke="#e5e7eb" />
-            <XAxis
-              dataKey={chartPeriod === "day" ? "time" : "date"}
-              tickLine={false}
-              tickMargin={10}
-              axisLine={false}
-              tickFormatter={(value) =>
-                chartPeriod === "day" ? value : value.slice(0, 6)
-              }
-              tick={{ fill: "#6b7280", fontSize: 12 }}
-            />
-            <YAxis
-              tickLine={false}
-              axisLine={false}
-              tick={{ fill: "#6b7280", fontSize: 12 }}
-              label={{
-                value: "Duration (min)",
-                angle: -90,
-                position: "insideLeft",
-                fill: "#6b7280",
-              }}
-              domain={[0, maxDuration + 10]}
-              tickCount={Math.ceil((maxDuration + 10) / 10)}
-            />
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent indicator="dashed" />}
-            />
-            <Bar
-              dataKey="nailedDuration"
-              fill="var(--color-nailedDuration)"
-              radius={4}
-              barSize={10}
-            />
-            {isOwnProfile && (
-              <Bar
-                dataKey="failedDuration"
-                fill="var(--color-failedDuration)"
-                radius={4}
-                barSize={10}
-              />
-            )}
-          </BarChart>
-        </ChartContainer>
-      </CardContent>
-    </Card>
+        </Text>
+      </Box>
+
+      {/* Period Buttons */}
+      <Box flexDirection="row" justifyContent="flex-end" mb="$4" gap="$2">
+        <Pressable
+          bg={chartPeriod === "day" ? "$primary600" : "$gray200"}
+          borderWidth={1}
+          borderColor={chartPeriod === "day" ? "$primary600" : "$gray300"}
+          borderRadius="$sm"
+          px="$3"
+          py="$2"
+          onPress={() => setChartPeriod("day")}
+        >
+          <Text
+            color={chartPeriod === "day" ? "$white" : "$gray900"}
+            fontSize="$sm"
+          >
+            Day
+          </Text>
+        </Pressable>
+        <Pressable
+          bg={chartPeriod === "week" ? "$primary600" : "$gray200"}
+          borderWidth={1}
+          borderColor={chartPeriod === "week" ? "$primary600" : "$gray300"}
+          borderRadius="$sm"
+          px="$3"
+          py="$2"
+          onPress={() => setChartPeriod("week")}
+        >
+          <Text
+            color={chartPeriod === "week" ? "$white" : "$gray900"}
+            fontSize="$sm"
+          >
+            Week
+          </Text>
+        </Pressable>
+        <Pressable
+          bg={chartPeriod === "month" ? "$primary600" : "$gray200"}
+          borderWidth={1}
+          borderColor={chartPeriod === "month" ? "$primary600" : "$gray300"}
+          borderRadius="$sm"
+          px="$3"
+          py="$2"
+          onPress={() => setChartPeriod("month")}
+        >
+          <Text
+            color={chartPeriod === "month" ? "$white" : "$gray900"}
+            fontSize="$sm"
+          >
+            Month
+          </Text>
+        </Pressable>
+        <Pressable
+          bg={chartPeriod === "year" ? "$primary600" : "$gray200"}
+          borderWidth={1}
+          borderColor={chartPeriod === "year" ? "$primary600" : "$gray300"}
+          borderRadius="$sm"
+          px="$3"
+          py="$2"
+          onPress={() => setChartPeriod("year")}
+        >
+          <Text
+            color={chartPeriod === "year" ? "$white" : "$gray900"}
+            fontSize="$sm"
+          >
+            Year
+          </Text>
+        </Pressable>
+      </Box>
+
+      {/* Bar Chart */}
+      <Box height={300}>
+        <BarChart
+          width={chartWidth}
+          height={300}
+          data={barData}
+          stackColors={["#60A5FA", "#EF4444"]}
+          barWidth={isOwnProfile ? 20 : 10}
+          spacing={isOwnProfile ? 10 : 5}
+          noOfSections={Math.ceil((maxDuration + 10) / 10)}
+          maxValue={maxDuration + 10}
+          yAxisTextStyle={styles.axisText}
+          xAxisLabelTextStyle={styles.axisText}
+          yAxisLabel="min"
+          xAxisLabelCount={chartData.length}
+          formatXLabel={(label) =>
+            chartPeriod === "day" ? label : label.slice(0, 6)
+          }
+          showFractionalValues={false}
+          showGrid
+          gridColor="#E5E7EB" // $gray200
+          isAnimated
+        />
+      </Box>
+    </Box>
   );
 };
+
+const styles = StyleSheet.create({
+  axisText: {
+    color: "#6B7280", // $gray500
+    fontSize: 12,
+  },
+});
 
 export default ChartComponent;
