@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { useLocalSearchParams } from "expo-router";
 import ProfileHeader from "@/components/dashboard/ProfileHeader";
 import FollowButton from "@/components/dashboard/FollowButton";
 import FollowersList from "@/components/dashboard/FollowersList";
