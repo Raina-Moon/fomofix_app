@@ -6,18 +6,19 @@
       "@/*": [
         "./*"
       ],
-      "gluestack-ui.config":[
+      "gluestack-ui.config": [
         "./gluestack-ui.config.ts"
       ],
       "tailwind.config": [
         "./tailwind.config.js"
       ]
-    },
+    }
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts"
+    "expo-env.d.ts",
+    "nativewind-env.d.ts"
   ]
 }
