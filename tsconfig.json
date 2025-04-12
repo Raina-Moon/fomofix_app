@@ -13,9 +13,6 @@
         "./tailwind.config.js"
       ]
     },
-    "types" : [
-      "@gluestack-ui/themed"
-    ]
   },
   "include": [
     "**/*.ts",
