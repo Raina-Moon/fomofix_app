@@ -1,7 +1,9 @@
 "use client";
 
-import { Follower } from "@/utils/api";
-import { useRouter } from "next/navigation";
+import { useThemeColor } from "@/hooks/useThemeColor";
+import { Follower } from "@/types";
+import { useRouter } from "expo-router";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 
 interface FollowersListProps {
   followers: Follower[];
@@ -12,23 +14,39 @@ const FollowersList = ({ followers }: FollowersListProps) => {
 
   const goToDashboard = (userId: number) => {
     router.push(`/dashboard/${userId}`);
-  }
+  };
+
+  if (!followers || followers.length === 0) return null;
+
+  const gray700 = useThemeColor({}, "gray-700");
 
   return (
-  followers.length > 0 && (
-    <ul className="mb-6 space-y-2">
+    <View style={{ marginBottom: 24, gap: 8 }}>
       {followers.map((follower) => (
-        <li onClick={() => goToDashboard(follower.id)} key={follower.id} className="flex items-center gap-3">
-          <img
+        <TouchableOpacity
+          onPress={() => goToDashboard(follower.id)}
+          key={follower.id}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 12,
+          }}
+        >
+          <Image
             src={follower.profile_image ?? "/images/DefaultProfile.png"}
             alt={follower.username}
-            className="w-8 h-8 rounded-full"
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 16,
+            }}
           />
-          <span className="text-gray-700">{follower.username}</span>
-        </li>
+          <Text style={{ color: gray700, fontSize: 14 }}>
+            {follower.username}
+          </Text>
+        </TouchableOpacity>
       ))}
-    </ul>
-  )
+    </View>
   );
 };
 
