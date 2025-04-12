@@ -1,18 +1,25 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Post } from "@/utils/api";
-import { useLikes } from "@/app/contexts/LikesContext";
-import { useComments } from "@/app/contexts/CommentsContext";
-import { useBookmarks } from "@/app/contexts/BookmarksContext";
+import { Post } from "@/types";
+import { useLikes } from "@/contexts/LikesContext";
+import { useComments } from "@/contexts/CommentsContext";
+import { useBookmarks } from "@/contexts/BookmarksContext";
 import {
   Select,
+  SelectTrigger,
+  SelectInput,
+  SelectPortal,
+  SelectBackdrop,
   SelectContent,
   SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useRouter } from "next/navigation";
+  Box,
+  Text,
+  FlatList,
+  Pressable,
+} from "@gluestack-ui/themed";
+import { useRouter } from "expo-router";
+import { Image, TextInput, TouchableOpacity } from "react-native";
 
 interface NailedPostsTabProps {
   posts: Post[];
@@ -134,190 +141,215 @@ const NailedPostsTab = ({ posts, userId }: NailedPostsTabProps) => {
 
   const closePostModal = () => setSelectedPostIndex(null);
 
-  const handleScroll = (e: React.WheelEvent) => {
-    if (selectedPostIndex === null) return;
-    if (e.deltaY > 0 && selectedPostIndex < sortedPosts.length - 1) {
-      setSelectedPostIndex(selectedPostIndex + 1);
-    } else if (e.deltaY < 0 && selectedPostIndex > 0) {
-      setSelectedPostIndex(selectedPostIndex - 1);
-    }
-  };
-
   const handlePostClick = useCallback(
     (userId: number, postId: number) => {
-      router.push(`${userId}/post/${postId}`);
+      router.push(`${userId}/post/${postId}` as any);
     },
     [router]
   );
 
+  const selectedPost = sortedPosts.find((p) => p.post_id === selectedPostIndex);
+
+  const renderPost = ({ item }: { item: Post }) => (
+    <TouchableOpacity
+      onPress={() => handlePostClick(item.user_id ?? 0, item.post_id)}
+      style={{ flex: 1 / 3, aspectRatio: 1, margin: 1 }}
+    >
+      {item.image_url ? (
+        <Image
+          source={{ uri: item.image_url }}
+          style={{ width: "100%", height: "100%", borderRadius: 4 }}
+          alt={item.title}
+        />
+      ) : (
+        <Box
+          flex={1}
+          bg="$gray200"
+          alignItems="center"
+          justifyContent="center"
+          borderRadius="$sm"
+        >
+          <Text color="$gray500">No Image</Text>
+        </Box>
+      )}
+    </TouchableOpacity>
+  );
+
   return (
-    <>
+    <Box>
       {/* filter section */}
-      <div className="flex justify-end mb-4">
-        <Select onValueChange={setSortBy} defaultValue="latest">
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Latest" />
+      <Box alignItems="flex-end" mb="$4">
+        <Select
+          onValueChange={(value: any) => setSortBy(value)}
+          defaultValue="latest"
+          width={160}
+        >
+          <SelectTrigger
+            borderWidth={1}
+            borderColor="$gray300"
+            borderRadius="$md"
+            p="$2"
+          >
+            <SelectInput placeholder="Latest" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="latest">Latest</SelectItem>
-            <SelectItem value="oldest">Oldest</SelectItem>
-            <SelectItem value="most-time">Most Time</SelectItem>
-            <SelectItem value="least-time">Shortest Time</SelectItem>
-          </SelectContent>
+          <SelectPortal>
+            <SelectBackdrop />
+            <SelectContent>
+              <SelectItem label="Latest" value="latest" />
+              <SelectItem label="Oldest" value="oldest" />
+              <SelectItem label="Most Time" value="most-time" />
+              <SelectItem label="Shortest Time" value="least-time" />
+            </SelectContent>
+          </SelectPortal>
         </Select>
-      </div>
+      </Box>
 
       {/* 3row grid */}
-      <div className="grid grid-cols-3 gap-1">
-        {sortedPosts.map((post) => (
-          <div
-            key={post.post_id}
-            className="aspect-square cursor-pointer"
-            onClick={() => handlePostClick(post.user_id ?? 0, post.post_id)}
-          >
-            {post.image_url ? (
-              <img
-                src={post.image_url}
-                alt={post.title}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                <span className="text-gray-500">No Image</span>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+      <FlatList
+        data={sortedPosts}
+        renderItem={renderPost}
+        keyExtractor={(item: any) => item.post_id.toString()}
+        numColumns={3}
+        contentContainerStyle={{ paddingBottom: 16 }}
+      />
 
       {/* posts modal */}
-      {selectedPostIndex !== null && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
-          onWheel={handleScroll}
+      {selectedPost && (
+        <Box
+          position="absolute"
+          top={0}
+          left={0}
+          right={0}
+          bottom={0}
+          bg="$black"
+          opacity={0.75}
+          justifyContent="center"
+          alignItems="center"
+          zIndex={50}
+          onTouchStart={closePostModal}
         >
-          <div className="bg-white rounded-lg w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-            <div className="flex justify-between items-center p-4 border-b">
-              <h2 className="text-lg font-semibold">
-                {sortedPosts[selectedPostIndex].title}
-              </h2>
-              <button
-                onClick={closePostModal}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="p-4">
-              {sortedPosts[selectedPostIndex].image_url && (
-                <img
-                  src={sortedPosts[selectedPostIndex].image_url}
-                  alt={sortedPosts[selectedPostIndex].title}
-                  className="w-full max-h-96 object-cover rounded mb-4"
-                />
-              )}
-              <p className="text-sm text-gray-600 mb-2">
-                Duration: {sortedPosts[selectedPostIndex].duration} min
-              </p>
-              <p className="text-sm text-gray-800 mb-4 whitespace-pre-wrap">
-                {sortedPosts[selectedPostIndex].description}
-              </p>
-              <div className="flex items-center gap-4 mb-4">
-                <button
-                  onClick={() =>
-                    handleLike(sortedPosts[selectedPostIndex].post_id)
-                  }
-                  className="text-pink-600 hover:underline"
-                >
-                  {likeStatus[sortedPosts[selectedPostIndex].post_id]
-                    ? "❤️ Liked"
-                    : "🤍 Like"}{" "}
-                  (
-                  {likeCounts[sortedPosts[selectedPostIndex].post_id] ||
-                    sortedPosts[selectedPostIndex].like_count}
-                  )
-                </button>
-                <button
-                  onClick={() =>
-                    handleBookmark(sortedPosts[selectedPostIndex].post_id)
-                  }
-                  className="text-yellow-500 hover:underline"
-                >
-                  {bookmarkStatus[sortedPosts[selectedPostIndex].post_id]
+          <Box
+            bg="$white"
+            borderRadius="$lg"
+            w="90%"
+            maxHeight="80%"
+            p="$4"
+            onTouchStart={(e: any) => e.stopPropagation()}
+          >
+            <Box flexDirection="row" justifyContent="space-between" mb="$4">
+              <Text fontSize="$lg" fontWeight="$semibold" color="$gray900">
+                {selectedPostIndex !== null &&
+                  sortedPosts[selectedPostIndex]?.title}
+              </Text>
+              <Pressable onPress={closePostModal}>✕</Pressable>
+            </Box>
+            {selectedPost.image_url && (
+              <Image
+                source={{ uri: selectedPost.image_url }}
+                style={{ width: "100%", height: 300, borderRadius: 8 }}
+                alt={selectedPost.title}
+              />
+            )}
+            <Text fontSize="$sm" color="$gray600" mb="$2">
+              Duration: {selectedPost.duration} min
+            </Text>
+            <Text fontSize="$sm" color="$gray800" mb="$4">
+              {selectedPost.description}
+            </Text>
+            <Box flexDirection="row" gap="$4" mb="$4">
+              <Pressable onPress={() => handleLike(selectedPost.post_id)}>
+                <Text color="$pink600">
+                  {likeStatus[selectedPost.post_id] ? "❤️ Liked" : "🤍 Like"} (
+                  {likeCounts[selectedPost.post_id] || selectedPost.like_count})
+                </Text>
+              </Pressable>
+              <Pressable onPress={() => handleBookmark(selectedPost.post_id)}>
+                <Text color="$yellow500">
+                  {bookmarkStatus[selectedPost.post_id]
                     ? "⭐ Bookmarked"
                     : "☆ Bookmark"}
-                </button>
-              </div>
-              <div>
-                <input
-                  value={
-                    newComments[sortedPosts[selectedPostIndex].post_id] || ""
-                  }
-                  onChange={(e) =>
-                    setNewComments((prev) => ({
-                      ...prev,
-                      [sortedPosts[selectedPostIndex].post_id]: e.target.value,
-                    }))
-                  }
-                  placeholder="Add a comment..."
-                  className="w-full border rounded px-2 py-1 text-sm mb-2"
-                />
-                <button
-                  onClick={() =>
-                    submitComment(sortedPosts[selectedPostIndex].post_id)
-                  }
-                  className="text-blue-500 text-sm"
-                >
+                </Text>
+              </Pressable>
+            </Box>
+            <Box>
+              <TextInput
+                value={newComments[selectedPost.post_id] || ""}
+                onChangeText={(text) =>
+                  setNewComments((prev) => ({
+                    ...prev,
+                    [selectedPost.post_id]: text,
+                  }))
+                }
+                placeholder="Add a comment..."
+                style={{
+                  borderWidth: 1,
+                  borderColor: "#D1D5DB",
+                  borderRadius: 4,
+                  paddingHorizontal: 8,
+                  paddingVertical: 4,
+                  fontSize: 14,
+                  marginBottom: 8,
+                }}
+              />
+              <Pressable onPress={() => submitComment(selectedPost.post_id)}>
+                <Text color="$blue500" fontSize="$sm">
                   Post
-                </button>
-                <ul className="mt-2 space-y-2 text-sm">
-                  {(
-                    commentsByPost[sortedPosts[selectedPostIndex].post_id] || []
-                  ).map((c) => (
-                    <li key={c.id} className="flex items-center gap-2">
-                      <strong>{c.username}:</strong>
-                      <input
-                        value={commentEdit[c.id] ?? c.content}
-                        onChange={(e) =>
-                          setCommentEdit((prev) => ({
-                            ...prev,
-                            [c.id]: e.target.value,
-                          }))
-                        }
-                        className="border rounded px-1 flex-1"
-                      />
-                      <button
-                        onClick={() =>
-                          handleEditComment(
-                            sortedPosts[selectedPostIndex].post_id,
-                            c.id,
-                            commentEdit[c.id] || c.content
-                          )
-                        }
-                        className="text-green-500"
-                      >
-                        Save
-                      </button>
-                      <button
-                        onClick={() =>
-                          handleDeleteComment(
-                            sortedPosts[selectedPostIndex].post_id,
-                            c.id
-                          )
-                        }
-                        className="text-red-500"
-                      >
-                        Delete
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
+                </Text>
+              </Pressable>
+              <Box mt="$2">
+                {(commentsByPost[selectedPost.post_id] || []).map((c) => (
+                  <Box
+                    key={c.id}
+                    flexDirection="row"
+                    alignItems="center"
+                    mb="$2"
+                  >
+                    <Text fontWeight="$bold" mr="$2">
+                      {c.username}:
+                    </Text>
+                    <TextInput
+                      value={commentEdit[c.id] ?? c.content}
+                      onChangeText={(text) =>
+                        setCommentEdit((prev) => ({
+                          ...prev,
+                          [c.id]: text,
+                        }))
+                      }
+                      style={{
+                        borderWidth: 1,
+                        borderColor: "#D1D5DB",
+                        borderRadius: 4,
+                        paddingHorizontal: 8,
+                        flex: 1,
+                      }}
+                    />
+                    <Pressable
+                      onPress={() =>
+                        handleEditComment(
+                          selectedPost.post_id,
+                          c.id,
+                          commentEdit[c.id] || c.content
+                        )
+                      }
+                      mx="$2"
+                    >
+                      <Text color="$green500">Save</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() =>
+                        handleDeleteComment(selectedPost.post_id, c.id)
+                      }
+                    >
+                      <Text color="$red500">Delete</Text>
+                    </Pressable>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          </Box>
+        </Box>
       )}
-    </>
+    </Box>
   );
 };
 
