@@ -1,4 +1,6 @@
-import Link from "next/link";
+import React from "react";
+import { Image, TouchableOpacity } from "react-native";
+import { useRouter } from "expo-router";
 
 interface ProfileHeaderProps {
   userId: number;
@@ -7,29 +9,37 @@ interface ProfileHeaderProps {
   profileImage: string | null;
 }
 
-const ProfileHeader = ({
+const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   userId,
-  username,
   storedId,
   profileImage,
-}: ProfileHeaderProps) => (
-  <>
-    {userId === storedId ? (
-      <Link href={`/profile/${userId}`}>
-        <img
-          src={profileImage ?? "/images/DefaultProfile.png"}
-          className="w-[70px] h-[70px] rounded-full"
-          alt={`${username}'s profile`}
-        />
-      </Link>
-    ) : (
-      <img
-        src={profileImage ?? "/images/DefaultProfile.png"}
-        className="w-[70px] h-[70px] rounded-full"
-        alt={`${username}'s profile`}
+}) => {
+  const router = useRouter();
+  const isMyProfile = userId === storedId;
+
+  const defaultImage = "/images/DefaultProfile.png";
+
+  return isMyProfile ? (
+    <TouchableOpacity onPress={() => router.push(`/profile/${userId}` as any)}>
+      <Image
+        source={{ uri: profileImage ?? defaultImage }}
+        style={{
+          width: 70,
+          height: 70,
+          borderRadius: 35,
+        }}
       />
-    )}
-  </>
-);
+    </TouchableOpacity>
+  ) : (
+    <Image
+      source={{ uri: profileImage ?? defaultImage }}
+      style={{
+        width: 70,
+        height: 70,
+        borderRadius: 35,
+      }}
+    />
+  );
+};
 
 export default ProfileHeader;
