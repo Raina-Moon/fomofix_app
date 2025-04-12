@@ -1,5 +1,7 @@
-import { useFollowers } from "@/app/contexts/FollowerContext";
-import { toast } from "sonner";
+import { useFollowers } from "@/contexts/FollowerContext";
+import { useThemeColor } from "@/hooks/useThemeColor";
+import { Text, TouchableOpacity } from "react-native";
+import Toast from "react-native-toast-message";
 
 interface FollowButtonProps {
   storedId: number | null;
@@ -38,25 +40,37 @@ const FollowButton = ({
       if (err.message.includes("duplicate key value")) {
         setIsFollowing(true);
       } else if (err.message.includes("Not following")) {
-        setIsFollowing(false); 
+        setIsFollowing(false);
       } else {
-        setIsFollowing(!newState); 
+        setIsFollowing(!newState);
       }
-      toast.error(`Failed to update follow status: ${err.message || "Unknown error"}`);
+      Toast.show({
+        type: "error",
+        text1: `Failed to update follow status: ${
+          err.message || "Unknown error"
+        }`,
+      });
     }
   };
 
+  const gray500 = useThemeColor({}, "gray-500");
+  const gray600 = useThemeColor({}, "gray-600");
+  const white = "#fff";
+  const primary500 = useThemeColor({}, "primary-500");
+  const primary600 = useThemeColor({}, "primary-600");
+
   return (
-    <button
-      onClick={handleFollowToggle}
-      className={`px-[6px] py-[6px] rounded-[100px] text-white text-xs ${
-        isFollowing
-          ? "bg-gray-500 hover:bg-gray-600"
-          : "bg-primary-500 hover:bg-primary-600"
-      }`}
+    <TouchableOpacity
+      onPress={handleFollowToggle}
+      style={{
+        paddingVertical: 6,
+        paddingHorizontal: 6,
+        backgroundColor: isFollowing ? gray500 : primary500,
+        borderRadius: 100,
+      }}
     >
-      {isFollowing ? "bye-bye vibe" : "vibe with you"}
-    </button>
+      <Text>{isFollowing ? "bye-bye vibe" : "vibe with you"}</Text>
+    </TouchableOpacity>
   );
 };
 
