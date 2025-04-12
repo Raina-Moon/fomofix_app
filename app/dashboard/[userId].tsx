@@ -1,26 +1,28 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "expo-router";
-import ProfileHeader from "./components/ProfileHeader";
-import FollowButton from "./components/FollowButton";
-import FollowersList from "./components/FollowersList";
-import GoalsTab from "./components/GoalsTab";
-import NailedPostsTab from "./components/NailedPostsTab";
-import FailedGoalsTab from "./components/FailedGoalsTab";
-import ChartComponent from "./components/ChartComponent";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useLocalSearchParams } from "expo-router";
+import ProfileHeader from "@/components/dashboard/ProfileHeader";
+import FollowButton from "@/components/dashboard/FollowButton";
+import FollowersList from "@/components/dashboard/FollowersList";
+import GoalsTab from "@/components/dashboard/GoalsTab";
+import NailedPostsTab from "@/components/dashboard/NailedPostsTab";
+import FailedGoalsTab from "@/components/dashboard/FailedGoalsTab";
+import ChartComponent from "@/components/dashboard/ChartComponent";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGoals } from "@/contexts/GoalContext";
 import { useFollowers } from "@/contexts/FollowerContext";
 import { usePosts } from "@/contexts/PostContext";
-import { useGlobalLoading } from "@/app/contexts/LoadingContext";
+import { Box, Text, VStack } from "@gluestack-ui/themed";
+import { Image, TouchableOpacity } from "react-native";
+import { CustomTabs } from "@/components/ui/CustomTab";
+import { useSearchParams } from "expo-router/build/hooks";
 
 const Dashboard = () => {
-  const { userId } = useParams();
+  const searchParams = useSearchParams();
+  const userId = searchParams.get("userId");
   const { user, token, fetchViewUser, viewUser } = useAuth();
   const { goals, fetchGoals } = useGoals();
   const { nailedPosts, fetchNailedPosts } = usePosts();
   const { followers, fetchFollowers } = useFollowers();
-  const { loading, setLoading } = useGlobalLoading();
 
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFollowersModalOpen, setIsFollowersModalOpen] = useState(false);
@@ -35,7 +37,6 @@ const Dashboard = () => {
     const profileId = Number(userId);
     const viewerId = user.id;
 
-    setLoading(true);
     try {
       const [viewUserData, goalsData, postsData, followersData] =
         await Promise.all([
@@ -63,8 +64,6 @@ const Dashboard = () => {
       }
     } catch (err) {
       console.error("Unexpected error in fetchData:", err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -82,11 +81,12 @@ const Dashboard = () => {
     return goals.filter((goal) => goal.status === "failed out");
   }, [goals]);
 
-  if (loading) {
-    return <div>Loading dashboard...</div>;
-  }
   if (!user || !token || !viewUser) {
-    return <div>Please log in to view the dashboard.</div>;
+    return (
+      <Box flex={1} justifyContent="center" alignItems="center" p={4}>
+        <Text color="$gray900">Please log in to view the dashboard.</Text>
+      </Box>
+    );
   }
 
   const displayedFollowers = followers.slice(0, 3);
@@ -94,123 +94,158 @@ const Dashboard = () => {
 
   const isOwnProfile = user.id === viewUser.id;
 
+  const tabs = [
+    ...(isOwnProfile ? [{ value: "all", label: "All" }] : []),
+    { value: "nailed", label: "Nailed It" },
+    ...(isOwnProfile ? [{ value: "failed", label: "Failed It" }] : []),
+    { value: "chart", label: "Chart" },
+  ];
+
   return (
-    <div className="p-3">
-      <div className="flex items-end justify-between mb-4">
-        <div className="flex gap-4">
-          <ProfileHeader
-            userId={viewUser.id}
-            storedId={user.id}
-            username={viewUser.username}
-            profileImage={
-              viewUser.profile_image || "/images/DefaultProfile.png"
-            }
-          />
-          <div
-            className="flex items-end cursor-pointer gap-6"
-            onClick={() => setIsFollowersModalOpen(true)}
-          >
-            {displayedFollowers.length > 0 ? (
-              <div className="flex">
-                {displayedFollowers.map((follower, index) => (
-                  <img
-                    key={follower.id}
-                    src={follower.profile_image || "/images/DefaultProfile.png"}
-                    alt={`${follower.username}'s profile`}
-                    className="w-7 h-7 rounded-full object-cover border-2 border-white"
-                    style={{
-                      marginLeft: index > 0 ? "-15px" : "0",
-                      zIndex: displayedFollowers.length - index,
-                    }}
-                  />
-                ))}
-                {extraFollowersCount > 0 && (
-                  <span
-                    className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-300 text-white font-medium text-sm border-2 border-white"
-                    style={{ zIndex: 0 }}
-                  >
-                    +{extraFollowersCount}
-                  </span>
-                )}
-              </div>
-            ) : (
-              <span className="text-gray-500 text-xs">
-                Be the first to vibe
-              </span>
-            )}
-          </div>
-        </div>
-        {user.id !== viewUser.id && (
-          <div className="flex items-end">
+    <Box p="$3" flex={1}>
+      <VStack space="lg">
+        <Box
+          flexDirection="row"
+          justifyContent="space-between"
+          alignItems="flex-end"
+        >
+          <Box flexDirection="row" alignItems="center" space="md">
+            <ProfileHeader
+              userId={viewUser.id}
+              storedId={user.id}
+              username={viewUser.username}
+              profileImage={
+                viewUser.profile_image || "/images/DefaultProfile.png"
+              }
+            />
+            <TouchableOpacity onPress={() => setIsFollowersModalOpen(true)}>
+              {displayedFollowers.length > 0 ? (
+                <Box flexDirection="row" alignItems="center">
+                  {displayedFollowers.map((follower, index) => (
+                    <Image
+                      key={follower.id}
+                      source={{
+                        uri:
+                          follower.profile_image ||
+                          "/images/DefaultProfile.png",
+                      }}
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: 14,
+                        borderWidth: 2,
+                        borderColor: "$white",
+                        marginLeft: index > 0 ? -15 : 0,
+                        zIndex: displayedFollowers.length - index,
+                      }}
+                    />
+                  ))}
+                  {extraFollowersCount > 0 && (
+                    <Box
+                      w="$7"
+                      h="$7"
+                      borderRadius="$lg"
+                      bg="$gray300"
+                      alignItems="center"
+                      justifyContent="center"
+                      borderWidth={2}
+                      borderColor="$white"
+                      zIndex={0}
+                    >
+                      <Text color="$white" fontSize="$sm" fontWeight="$medium">
+                        +{extraFollowersCount}
+                      </Text>
+                    </Box>
+                  )}
+                </Box>
+              ) : (
+                <Text color="$gray500" fontSize="$xs">
+                  Be the first to vibe
+                </Text>
+              )}
+            </TouchableOpacity>
+          </Box>
+          {user.id !== viewUser.id && (
             <FollowButton
               storedId={user.id}
               userId={viewUser.id}
               isFollowing={isFollowing}
               setIsFollowing={setIsFollowing}
             />
-          </div>
-        )}
-      </div>
+          )}
+        </Box>
 
-      <h1 className="text-2xl font-medium mb-4 text-gray-900">
-        {viewUser.username}'s grab goals
-      </h1>
+        <Text color="$gray900" fontSize="$lg" fontWeight="$medium" mb="$2">
+          {viewUser.username}'s grab goals
+        </Text>
 
-      <Tabs defaultValue="nailed" onValueChange={setActiveTab} className="my-6">
-        <TabsList className="mb-4">
-          {isOwnProfile && <TabsTrigger value="all">All</TabsTrigger>}
-          <TabsTrigger value="nailed">Nailed It</TabsTrigger>
-          {isOwnProfile && <TabsTrigger value="failed">Failed It</TabsTrigger>}
-          <TabsTrigger value="chart">Chart</TabsTrigger>
-        </TabsList>
-        {isOwnProfile && (
-          <TabsContent value="all">
-            <GoalsTab goals={goals} />
-          </TabsContent>
-        )}
-        <TabsContent value="nailed">
-          <NailedPostsTab posts={nailedPosts} userId={user.id} />
-        </TabsContent>
-        {isOwnProfile && (
-          <TabsContent value="failed">
-            <FailedGoalsTab goals={goals} />
-          </TabsContent>
-        )}
-        <TabsContent value="chart">
-          <ChartComponent
-            nailedPosts={nailedGoals}
-            failedPosts={isOwnProfile ? failedPosts : undefined}
-            chartPeriod={chartPeriod}
-            setChartPeriod={setChartPeriod}
-            isOwnProfile={isOwnProfile}
-          />
-        </TabsContent>
-      </Tabs>
+        <CustomTabs
+          tabs={tabs}
+          defaultValue="nailed"
+          onValueChange={setActiveTab}
+        >
+          {(activeTab) => (
+            <>
+              {isOwnProfile && activeTab === "all" && (
+                <GoalsTab goals={goals} />
+              )}
+              {activeTab === "nailed" && (
+                <NailedPostsTab posts={nailedPosts} userId={user.id} />
+              )}
+              {isOwnProfile && activeTab === "failed" && (
+                <FailedGoalsTab goals={goals} />
+              )}
+              {activeTab === "chart" && (
+                <ChartComponent
+                  nailedPosts={nailedGoals}
+                  failedPosts={isOwnProfile ? failedPosts : undefined}
+                  chartPeriod={chartPeriod}
+                  setChartPeriod={setChartPeriod}
+                  isOwnProfile={isOwnProfile}
+                />
+              )}
+            </>
+          )}
+        </CustomTabs>
+      </VStack>
 
       {isFollowersModalOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-          onClick={() => setIsFollowersModalOpen(false)}
+        <Box
+          position="absolute"
+          top={0}
+          left={0}
+          right={0}
+          bottom={0}
+          bg="$black"
+          opacity={0.5}
+          justifyContent="center"
+          alignItems="center"
+          zIndex={50}
+          onTouchStart={() => setIsFollowersModalOpen(false)}
         >
-          <div
-            className="bg-white rounded-lg p-6 w-[85%] max-w-md"
-            onClick={(e) => e.stopPropagation()}
+          <Box
+            bg="$white"
+            borderRadius="$lg"
+            p="$6"
+            w="85%"
+            maxWidth={400}
+            onTouchStart={(e: any) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">
+            <Box flexDirection="row" justifyContent="space-between" mb="$4">
+              <Text color="$gray900" fontSize="$lg" fontWeight="$bold">
                 Followers {followers.length}
-              </h3>
-            </div>
+              </Text>
+            </Box>
             <FollowersList
               followers={followers.map((follower) => ({
                 ...follower,
                 profile_image: follower.profile_image ?? null,
               }))}
             />
-          </div>
-        </div>
+          </Box>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 };
 
