@@ -1,4 +1,3 @@
-// components/ui/CustomTabs.tsx
 import { useState } from "react";
 import { Box, Pressable, Text } from "@gluestack-ui/themed";
 
