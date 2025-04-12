@@ -4,7 +4,6 @@ import React from "react";
 import ResetPasswordForm from "@/components/reset_password/ResetPasswordForm";
 import {
   Keyboard,
-  Touchable,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
