@@ -12,6 +12,7 @@ import { useEffect } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Header from "@/components/Header";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -45,6 +46,7 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <AuthProvider>
         <SafeAreaView style={{ flex: 1 }}>
+          <Toast />
           {showHeader && <Header />}
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
