@@ -16,15 +16,18 @@ const Header = () => {
       return;
     }
     await getProfile(user.id);
-  }, [isLoggedIn, user?.id, user?.profile_image, getProfile]);
+  }, [isLoggedIn, user, getProfile]);
 
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
 
-const handleNavigation = () => {
-    const path:string = isLoggedIn && user ? `/dashboard/${user.id}` : "/login"
-    router.push(path as any);
+  const handleNavigation = () => {
+    if (isLoggedIn && user?.id) {
+      router.push(`/dashboard/${user.id}`);
+    } else {
+      router.push("/login");
+    }
   };
 
 
