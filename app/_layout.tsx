@@ -47,7 +47,8 @@ export default function RootLayout() {
                   <LikesProvider>
                     <CommentsProvider>
                       <SafeAreaView style={{ flex: 1 }}>
-                        <Toast />
+                        <Toast 
+                        position="bottom"/>
                         <Stack
                           screenOptions={{
                             headerShown: true,
