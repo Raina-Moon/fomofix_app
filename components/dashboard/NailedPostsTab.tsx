@@ -15,18 +15,25 @@ import {
   SelectItem,
   Box,
   Text,
-  FlatList,
   Pressable,
 } from "@gluestack-ui/themed";
 import { useRouter } from "expo-router";
-import { Image, TextInput, TouchableOpacity } from "react-native";
+import {
+  Image,
+  TextInput,
+  TouchableOpacity,
+  StyleProp,
+  ViewStyle,
+  FlatList,
+} from "react-native";
+import { ListRenderItem } from "react-native";
 
 interface NailedPostsTabProps {
   posts: Post[];
   userId: number | null;
 }
 
-const NailedPostsTab = ({ posts, userId }: NailedPostsTabProps) => {
+const NailedPostsTab = ({ posts = [], userId }: NailedPostsTabProps) => {
   const { likePost, unlikePost, getLikeStatus, fetchLikeCount } = useLikes();
   const {
     commentsByPost,
@@ -38,9 +45,7 @@ const NailedPostsTab = ({ posts, userId }: NailedPostsTabProps) => {
   const { bookmarkPost, unbookmarkPost, fetchBookmarkedPosts } = useBookmarks();
   const router = useRouter();
 
-  const [selectedPostIndex, setSelectedPostIndex] = useState<number | null>(
-    null
-  );
+  const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState("latest");
   const [likeStatus, setLikeStatus] = useState<{ [key: number]: boolean }>({});
   const [likeCounts, setLikeCounts] = useState<{ [key: number]: number }>({});
@@ -72,7 +77,14 @@ const NailedPostsTab = ({ posts, userId }: NailedPostsTabProps) => {
     } catch (err) {
       console.error("Failed to initialize data:", err);
     }
-  }, [userId, posts]);
+  }, [
+    userId,
+    posts,
+    getLikeStatus,
+    fetchLikeCount,
+    fetchBookmarkedPosts,
+    fetchComments,
+  ]);
 
   useEffect(() => {
     initializeData();
@@ -119,6 +131,7 @@ const NailedPostsTab = ({ posts, userId }: NailedPostsTabProps) => {
     if (!userId || !newComments[postId]) return;
     await addComment(userId, postId, newComments[postId]);
     setNewComments((prev) => ({ ...prev, [postId]: "" }));
+    await fetchComments(postId);
   };
 
   const handleEditComment = async (
@@ -128,7 +141,7 @@ const NailedPostsTab = ({ posts, userId }: NailedPostsTabProps) => {
   ) => {
     try {
       await editComment(postId, commentId, content);
-      fetchComments(postId);
+      await fetchComments(postId);
       setCommentEdit((prev) => ({ ...prev, [commentId]: "" }));
     } catch (err) {
       console.error("Failed to edit comment:", err);
@@ -136,24 +149,29 @@ const NailedPostsTab = ({ posts, userId }: NailedPostsTabProps) => {
   };
 
   const handleDeleteComment = async (postId: number, commentId: number) => {
-    await deleteComment(postId, commentId);
+    try {
+      await deleteComment(postId, commentId);
+      await fetchComments(postId);
+    } catch (err) {
+      console.error("Failed to delete comment:", err);
+    }
   };
 
-  const closePostModal = () => setSelectedPostIndex(null);
+  const closePostModal = () => setSelectedPostId(null);
 
   const handlePostClick = useCallback(
     (userId: number, postId: number) => {
-      router.push(`${userId}/post/${postId}` as any);
+      router.push(`/${userId}/post/${postId}` as any);
     },
     [router]
   );
 
-  const selectedPost = sortedPosts.find((p) => p.post_id === selectedPostIndex);
+  const selectedPost = sortedPosts.find((p) => p.post_id === selectedPostId);
 
-  const renderPost = ({ item }: { item: Post }) => (
+  const renderPost: ListRenderItem<Post> = ({ item }) => (
     <TouchableOpacity
       onPress={() => handlePostClick(item.user_id ?? 0, item.post_id)}
-      style={{ flex: 1 / 3, aspectRatio: 1, margin: 1 }}
+      style={{ flex: 1 / 3, aspectRatio: 1, margin: 1 } as StyleProp<ViewStyle>}
     >
       {item.image_url ? (
         <Image
@@ -163,34 +181,39 @@ const NailedPostsTab = ({ posts, userId }: NailedPostsTabProps) => {
         />
       ) : (
         <Box
-          flex={1}
-          bg="$gray200"
-          alignItems="center"
-          justifyContent="center"
-          borderRadius="$sm"
+          style={{
+            flex: 1,
+            backgroundColor: "#F3F4F6",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 4,
+          }}
         >
-          <Text color="$gray500">No Image</Text>
+          <Text style={{ color: "#6B7280", fontSize: 14 }}>No Image</Text>
         </Box>
       )}
     </TouchableOpacity>
   );
 
+  console.log("NailedPostsTab rendering", { posts, userId, selectedPostId });
+
   return (
-    <Box>
-      {/* filter section */}
-      <Box alignItems="flex-end" mb="$4">
+    <Box style={{ paddingHorizontal: 12, flex: 1 }}>
+      {/* Filter section */}
+      <Box style={{ alignItems: "flex-end", marginBottom: 16 }}>
         <Select
-          onValueChange={(value: any) => setSortBy(value)}
+          onValueChange={(value) => setSortBy(value)}
           defaultValue="latest"
-          width={160}
         >
           <SelectTrigger
-            borderWidth={1}
-            borderColor="$gray300"
-            borderRadius="$md"
-            p="$2"
+            style={{
+              borderWidth: 1,
+              borderColor: "#D1D5DB",
+              borderRadius: 6,
+              padding: 8,
+            }}
           >
-            <SelectInput placeholder="Latest" />
+            <SelectInput placeholder="Sort by" />
           </SelectTrigger>
           <SelectPortal>
             <SelectBackdrop />
@@ -204,44 +227,57 @@ const NailedPostsTab = ({ posts, userId }: NailedPostsTabProps) => {
         </Select>
       </Box>
 
-      {/* 3row grid */}
-      <FlatList
+      {/* 3-column grid */}
+      <FlatList<Post>
         data={sortedPosts}
         renderItem={renderPost}
-        keyExtractor={(item: any) => item.post_id.toString()}
+        keyExtractor={(item) => item.post_id.toString()}
         numColumns={3}
         contentContainerStyle={{ paddingBottom: 16 }}
       />
 
-      {/* posts modal */}
+      {/* Post modal */}
       {selectedPost && (
         <Box
-          position="absolute"
-          top={0}
-          left={0}
-          right={0}
-          bottom={0}
-          bg="$black"
-          opacity={0.75}
-          justifyContent="center"
-          alignItems="center"
-          zIndex={50}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "#000000",
+            opacity: 0.75,
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 50,
+          }}
           onTouchStart={closePostModal}
         >
           <Box
-            bg="$white"
-            borderRadius="$lg"
-            w="90%"
-            maxHeight="80%"
-            p="$4"
-            onTouchStart={(e: any) => e.stopPropagation()}
+            style={{
+              backgroundColor: "#FFFFFF",
+              borderRadius: 12,
+              width: "90%",
+              maxHeight: "80%",
+              padding: 16,
+            }}
+            onTouchStart={(e) => e.stopPropagation()}
           >
-            <Box flexDirection="row" justifyContent="space-between" mb="$4">
-              <Text fontSize="$lg" fontWeight="$semibold" color="$gray900">
-                {selectedPostIndex !== null &&
-                  sortedPosts[selectedPostIndex]?.title}
+            <Box
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                marginBottom: 16,
+              }}
+            >
+              <Text
+                style={{ fontSize: 18, fontWeight: "600", color: "#111827" }}
+              >
+                {selectedPost.title || "Untitled"}
               </Text>
-              <Pressable onPress={closePostModal}>✕</Pressable>
+              <Pressable onPress={closePostModal}>
+                <Text style={{ fontSize: 16, color: "#111827" }}>✕</Text>
+              </Pressable>
             </Box>
             {selectedPost.image_url && (
               <Image
@@ -250,21 +286,24 @@ const NailedPostsTab = ({ posts, userId }: NailedPostsTabProps) => {
                 alt={selectedPost.title}
               />
             )}
-            <Text fontSize="$sm" color="$gray600" mb="$2">
-              Duration: {selectedPost.duration} min
+            <Text style={{ fontSize: 14, color: "#6B7280", marginBottom: 8 }}>
+              Duration: {selectedPost.duration || 0} min
             </Text>
-            <Text fontSize="$sm" color="$gray800" mb="$4">
-              {selectedPost.description}
+            <Text style={{ fontSize: 14, color: "#374151", marginBottom: 16 }}>
+              {selectedPost.description || "No description"}
             </Text>
-            <Box flexDirection="row" gap="$4" mb="$4">
+            <Box style={{ flexDirection: "row", gap: 16, marginBottom: 16 }}>
               <Pressable onPress={() => handleLike(selectedPost.post_id)}>
-                <Text color="$pink600">
+                <Text style={{ color: "#DB2777", fontSize: 14 }}>
                   {likeStatus[selectedPost.post_id] ? "❤️ Liked" : "🤍 Like"} (
-                  {likeCounts[selectedPost.post_id] || selectedPost.like_count})
+                  {likeCounts[selectedPost.post_id] ||
+                    selectedPost.like_count ||
+                    0}
+                  )
                 </Text>
               </Pressable>
               <Pressable onPress={() => handleBookmark(selectedPost.post_id)}>
-                <Text color="$yellow500">
+                <Text style={{ color: "#F59E0B", fontSize: 14 }}>
                   {bookmarkStatus[selectedPost.post_id]
                     ? "⭐ Bookmarked"
                     : "☆ Bookmark"}
@@ -292,20 +331,29 @@ const NailedPostsTab = ({ posts, userId }: NailedPostsTabProps) => {
                 }}
               />
               <Pressable onPress={() => submitComment(selectedPost.post_id)}>
-                <Text color="$blue500" fontSize="$sm">
-                  Post
+                <Text style={{ color: "#3B82F6", fontSize: 14 }}>
+                  Post Comment
                 </Text>
               </Pressable>
-              <Box mt="$2">
+              <Box style={{ marginTop: 8 }}>
                 {(commentsByPost[selectedPost.post_id] || []).map((c) => (
                   <Box
                     key={c.id}
-                    flexDirection="row"
-                    alignItems="center"
-                    mb="$2"
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      marginBottom: 8,
+                    }}
                   >
-                    <Text fontWeight="$bold" mr="$2">
-                      {c.username}:
+                    <Text
+                      style={{
+                        fontWeight: "bold",
+                        marginRight: 8,
+                        color: "#111827",
+                        fontSize: 14,
+                      }}
+                    >
+                      {c.username || "User"}:
                     </Text>
                     <TextInput
                       value={commentEdit[c.id] ?? c.content}
@@ -321,6 +369,7 @@ const NailedPostsTab = ({ posts, userId }: NailedPostsTabProps) => {
                         borderRadius: 4,
                         paddingHorizontal: 8,
                         flex: 1,
+                        fontSize: 14,
                       }}
                     />
                     <Pressable
@@ -331,16 +380,20 @@ const NailedPostsTab = ({ posts, userId }: NailedPostsTabProps) => {
                           commentEdit[c.id] || c.content
                         )
                       }
-                      mx="$2"
+                      style={{ marginHorizontal: 8 }}
                     >
-                      <Text color="$green500">Save</Text>
+                      <Text style={{ color: "#22C55E", fontSize: 14 }}>
+                        Save
+                      </Text>
                     </Pressable>
                     <Pressable
                       onPress={() =>
                         handleDeleteComment(selectedPost.post_id, c.id)
                       }
                     >
-                      <Text color="$red500">Delete</Text>
+                      <Text style={{ color: "#EF4444", fontSize: 14 }}>
+                        Delete
+                      </Text>
                     </Pressable>
                   </Box>
                 ))}

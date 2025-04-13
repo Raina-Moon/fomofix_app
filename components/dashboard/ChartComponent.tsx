@@ -1,8 +1,11 @@
 import { useMemo } from "react";
-import { Box, Text, Pressable } from "@gluestack-ui/themed";
 import { BarChart } from "react-native-gifted-charts";
 import { Dimensions, StyleSheet } from "react-native";
 import { ChartData, Goal } from "@/types";
+import { View } from "react-native";
+import { Text } from "react-native";
+import { useThemeColor } from "@/hooks/useThemeColor";
+import { Pressable } from "react-native";
 
 interface ChartComponentProps {
   nailedPosts: Goal[];
@@ -180,108 +183,95 @@ const ChartComponent = ({
     ],
   }));
 
+  const gray600 = useThemeColor({}, "gray-600");
+  const primary600 = useThemeColor({}, "primary-600");
+  const gray200 = useThemeColor({}, "gray-200");
+  const gray300 = useThemeColor({}, "gray-300");
+  const white = "#fff";
+  const gray900 = useThemeColor({}, "gray-900");
   return (
-    <Box
-    backgroundColor="$white"
-      borderRadius="$lg"
-      padding={4}
-      borderWidth={1}
-      borderColor="$gray300"
-      marginBottom={4}
+    <View
+      style={{
+        backgroundColor: white,
+        borderRadius: 16,
+        padding: 16,
+        borderWidth: 1,
+        borderColor: gray300,
+        marginBottom: 16,
+      }}
     >
       {/* Header */}
-      <Box marginBottom={4}>
-        <Text fontSize={16} fontWeight="$semibold">
+      <View style={{ marginBottom: 4 }}>
+        <Text style={{ fontSize: 16, fontWeight: "semibold" }}>
           Success Duration
         </Text>
-        <Text fontSize={12} color="$gray600">
+        <Text
+          style={{
+            fontSize: 12,
+            color: gray600,
+          }}
+        >
           {chartPeriod === "day" && "Last 24 Hours"}
           {chartPeriod === "week" && "Last 7 Days"}
           {chartPeriod === "month" && "Last 30 Days"}
           {chartPeriod === "year" && "This Year"}
         </Text>
-      </Box>
+      </View>
+
+      {/* Chart Legend */}
 
       {/* Period Buttons */}
-      <Box flexDirection="row" justifyContent="flex-end" marginBottom={4} gap="$2">
-        <Pressable
-          backgroundColor={chartPeriod === "day" ? "$primary600" : "$gray200"}
-          borderWidth={1}
-          borderColor={chartPeriod === "day" ? "$primary600" : "$gray300"}
-          borderRadius="$sm"
-          $base-px="$3"
-          $base-py="$2"
-          onPress={() => setChartPeriod("day")}
-        >
-          <Text
-            color={chartPeriod === "day" ? "$white" : "$gray900"}
-            fontSize={8}
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "flex-end",
+          marginBottom: 16,
+          gap: 8,
+        }}
+      >
+        {["day", "week", "month", "year"].map((period) => (
+          <Pressable
+            key={period}
+            style={{
+              backgroundColor: chartPeriod === period ? primary600 : gray200,
+              borderWidth: 1,
+              borderColor: chartPeriod === period ? primary600 : gray300,
+              borderRadius: 6,
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+            }}
+            onPress={() =>
+              setChartPeriod(period as ChartComponentProps["chartPeriod"])
+            }
           >
-            Day
-          </Text>
-        </Pressable>
-        <Pressable
-          backgroundColor={chartPeriod === "week" ? "$primary600" : "$gray200"}
-          borderWidth={1}
-          borderColor={chartPeriod === "week" ? "$primary600" : "$gray300"}
-          borderRadius="$sm"
-          $base-px="$3"
-          $base-py="$2"
-          onPress={() => setChartPeriod("week")}
-        >
-          <Text
-            color={chartPeriod === "week" ? "$white" : "$gray900"}
-            fontSize={8}
-          >
-            Week
-          </Text>
-        </Pressable>
-        <Pressable
-          backgroundColor={chartPeriod === "month" ? "$primary600" : "$gray200"}
-          borderWidth={1}
-          borderColor={chartPeriod === "month" ? "$primary600" : "$gray300"}
-          borderRadius="$sm"
-          $base-px="$3"
-          $base-py="$2"
-          onPress={() => setChartPeriod("month")}
-        >
-          <Text
-            color={chartPeriod === "month" ? "$white" : "$gray900"}
-            fontSize={8}
-          >
-            Month
-          </Text>
-        </Pressable>
-        <Pressable
-          backgroundColor={chartPeriod === "year" ? "$primary600" : "$gray200"}
-          borderWidth={1}
-          borderColor={chartPeriod === "year" ? "$primary600" : "$gray300"}
-          borderRadius="$sm"
-          $base-px="$3"
-          $base-py="$2"
-          onPress={() => setChartPeriod("year")}
-        >
-          <Text
-            color={chartPeriod === "year" ? "$white" : "$gray900"}
-            fontSize={8}
-          >
-            Year
-          </Text>
-        </Pressable>
-      </Box>
+            <Text
+              style={{
+                color: chartPeriod === period ? white : gray900,
+                fontSize: 12,
+              }}
+            >
+              {period.charAt(0).toUpperCase() + period.slice(1)}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
 
       {/* Bar Chart */}
-      <Box height={300} flexDirection="row">
-        <Box width={10} justifyContent="center" alignItems="center">
+      <View style={{ height: 300, flexDirection: "row" }}>
+        <View
+          style={{ width: 10, justifyContent: "center", alignItems: "center" }}
+        >
           <Text
-            color="$gray600"
-            fontSize={8}
-            style={{ transform: [{ rotate: "-90deg" }] }}
+            style={{
+              transform: [{ rotate: "-90deg" }],
+              color: gray600,
+              fontSize: 8,
+            }}
           >
             Duration (min)
           </Text>
-        </Box>
-        <Box flex={1}>
+        </View>
+        <View style={{ flex: 1 }}>
           <BarChart
             width={chartWidth}
             height={300}
@@ -299,9 +289,9 @@ const ChartComponent = ({
             isAnimated
             rotateLabel={chartPeriod !== "day"}
           />
-        </Box>
-      </Box>
-    </Box>
+        </View>
+      </View>
+    </View>
   );
 };
 
