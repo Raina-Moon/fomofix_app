@@ -4,7 +4,6 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import "@/global.css";
-import { GluestackUIProvider, StyledProvider } from "@gluestack-ui/themed";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -17,7 +16,6 @@ import Header from "@/components/Header";
 import { GoalProvider } from "@/contexts/GoalContext";
 import { PostProvider } from "@/contexts/PostContext";
 import { FollowerProvider } from "@/contexts/FollowerContext";
-import { config } from "@/components/ui/gluestack-ui-provider/config";
 import { LikesProvider } from "@/contexts/LikesContext";
 import { CommentsProvider } from "@/contexts/CommentsContext";
 import { BookmarksProvider } from "@/contexts/BookmarksContext";
@@ -41,7 +39,6 @@ export default function RootLayout() {
   }
 
   return (
-    <GluestackUIProvider config={config}>
       <ThemeProvider value={DefaultTheme}>
         <AuthProvider>
           <GoalProvider>
@@ -96,6 +93,5 @@ export default function RootLayout() {
           </GoalProvider>
         </AuthProvider>
       </ThemeProvider>
-    </GluestackUIProvider>
   );
 }

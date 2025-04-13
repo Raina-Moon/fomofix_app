@@ -5,7 +5,6 @@
     "jsx": "react-jsx",
     "moduleResolution": "node",
     "baseUrl": ".",
-    "types": ["@gluestack-ui/themed", "nativewind/types"],
     "paths": {
       "@/*": ["./*"]
     },
