@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   DarkTheme,
   DefaultTheme,
@@ -7,7 +8,6 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import "react-native-reanimated";
-import { useEffect } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";

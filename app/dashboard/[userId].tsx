@@ -17,6 +17,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  FlatList,
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 
@@ -95,16 +96,6 @@ const Dashboard = () => {
     );
   }
 
-  if (!viewUser) {
-    return (
-      <View style={styles.centeredContainer}>
-        <Text style={[styles.gray900Text, styles.loadingText]}>
-          Loading user data...
-        </Text>
-      </View>
-    );
-  }
-
   const displayedFollowers = followers.slice(0, 3);
   const extraFollowersCount = followers.length > 3 ? followers.length - 3 : 0;
 
@@ -117,9 +108,28 @@ const Dashboard = () => {
     { value: "chart", label: "Chart" },
   ];
 
-  return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+  const renderContent = () => {
+    if (isOwnProfile && activeTab === "all") return <GoalsTab goals={goals} />;
+    if (activeTab === "nailed") return <NailedPostsTab posts={nailedPosts} userId={user.id} />;
+    if (isOwnProfile && activeTab === "failed") return <FailedGoalsTab goals={goals} />;
+    if (activeTab === "chart") {
+      return (
+        <ChartComponent
+          nailedPosts={nailedGoals}
+          failedPosts={isOwnProfile ? failedPosts : undefined}
+          chartPeriod={chartPeriod}
+          setChartPeriod={setChartPeriod}
+          isOwnProfile={isOwnProfile}
+        />
+      );
+    }
+    return null;
+  };
+
+  const data = [
+    {
+      id: "header",
+      component: (
         <View style={styles.vStack}>
           <View style={styles.rowSpaceBetweenAlignFlexEnd}>
             <View style={styles.rowAlignCenter}>
@@ -176,11 +186,8 @@ const Dashboard = () => {
             )}
           </View>
 
-          <Text style={styles.headerText}>
-            {viewUser.username}'s grab goals
-          </Text>
+          <Text style={styles.headerText}>{viewUser.username}'s grab goals</Text>
 
-          {/* Tabs */}
           <View style={styles.tabContainer}>
             {tabs.map((tab) => (
               <TouchableOpacity
@@ -202,28 +209,23 @@ const Dashboard = () => {
               </TouchableOpacity>
             ))}
           </View>
-
-          {/* Tab Content */}
-          <View style={styles.tabContent}>
-            {isOwnProfile && activeTab === "all" && <GoalsTab goals={goals} />}
-            {activeTab === "nailed" && (
-              <NailedPostsTab posts={nailedPosts} userId={user.id} />
-            )}
-            {isOwnProfile && activeTab === "failed" && (
-              <FailedGoalsTab goals={goals} />
-            )}
-            {activeTab === "chart" && (
-              <ChartComponent
-                nailedPosts={nailedGoals}
-                failedPosts={isOwnProfile ? failedPosts : undefined}
-                chartPeriod={chartPeriod}
-                setChartPeriod={setChartPeriod}
-                isOwnProfile={isOwnProfile}
-              />
-            )}
-          </View>
         </View>
-      </ScrollView>
+      ),
+    },
+    {
+      id: "content",
+      component: renderContent(),
+    },
+  ];
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={data}
+        renderItem={({ item }) => item.component}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.scrollContainer}
+      />
 
       {isFollowersModalOpen && (
         <TouchableOpacity
@@ -337,9 +339,6 @@ const styles = StyleSheet.create({
   activeTabText: {
     color: "#1EBD7B",
     fontWeight: "600",
-  },
-  tabContent: {
-    flex: 1,
   },
   modalOverlay: {
     position: "absolute",

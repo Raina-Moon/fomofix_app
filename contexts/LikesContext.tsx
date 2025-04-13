@@ -1,7 +1,7 @@
 
+import { createContext, useContext, useState, ReactNode } from "react";
 import { fetchApi } from "@/constants/api/fetch";
 import { Like } from "@/types";
-import { createContext, useContext, useState, ReactNode } from "react";
 
 interface LikeState {
   likedPosts: Like[];

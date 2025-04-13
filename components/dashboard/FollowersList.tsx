@@ -1,4 +1,3 @@
-"use client";
 
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { Follower } from "@/types";

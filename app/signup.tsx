@@ -1,5 +1,5 @@
-import SignupForm from "@/components/signup/SignupForm";
 import React from "react";
+import SignupForm from "@/components/signup/SignupForm";
 import { Keyboard, TouchableWithoutFeedback, View } from "react-native";
 
 const page = () => {

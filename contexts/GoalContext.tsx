@@ -1,6 +1,6 @@
+import { createContext, useContext, useState, ReactNode } from "react";
 import { fetchApi } from "@/constants/api/fetch";
 import { Goal } from "@/types";
-import { createContext, useContext, useState, ReactNode } from "react";
 
 interface GoalState {
   goals: Goal[];
