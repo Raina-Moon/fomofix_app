@@ -13,15 +13,14 @@ import { usePosts } from "@/contexts/PostContext";
 import { Box, Text, VStack } from "@gluestack-ui/themed";
 import { Image, TouchableOpacity } from "react-native";
 import { CustomTabs } from "@/components/ui/CustomTab";
-import { useSearchParams } from "expo-router/build/hooks";
+import { useLocalSearchParams } from "expo-router";
 
 const Dashboard = () => {
-  const searchParams = useSearchParams();
-  const userId = searchParams.get("userId");
+  const { userId } = useLocalSearchParams<{ userId: string }>();
   const { user, token, fetchViewUser, viewUser } = useAuth();
-  const { goals, fetchGoals } = useGoals();
-  const { nailedPosts, fetchNailedPosts } = usePosts();
-  const { followers, fetchFollowers } = useFollowers();
+  const { goals = [], fetchGoals } = useGoals();
+  const { nailedPosts = [], fetchNailedPosts } = usePosts();
+  const { followers = [], fetchFollowers } = useFollowers();
 
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFollowersModalOpen, setIsFollowersModalOpen] = useState(false);
@@ -30,14 +29,14 @@ const Dashboard = () => {
     "day" | "week" | "month" | "year"
   >("week");
 
-  const fetchData = async () => {
-    if (!userId || !user?.id || !token) return;
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!userId || !user?.id || !token) return;
 
-    const profileId = Number(userId);
-    const viewerId = user.id;
+      const profileId = Number(userId);
+      const viewerId = user.id;
 
-    try {
-      const [viewUserData, goalsData, postsData, followersData] =
+      try {
         await Promise.all([
           fetchViewUser(profileId).catch((err) => {
             console.error("fetchViewUser failed:", err);
@@ -57,20 +56,21 @@ const Dashboard = () => {
           }),
         ]);
 
-      if (followersData) {
-        const isFollowingNow = followersData.some((f) => f.id === viewerId);
-        setIsFollowing(isFollowingNow);
+        setIsFollowing(followers.some((f) => f.id === viewerId));
+      } catch (err) {
+        console.error("Unexpected error in fetchData:", err);
       }
-    } catch (err) {
-      console.error("Unexpected error in fetchData:", err);
-    }
-  };
-
-  useEffect(() => {
-    if (user && token && userId) {
-      fetchData();
-    }
-  }, [userId]);
+    };
+    fetchData();
+  }, [
+    userId,
+    user,
+    token,
+    fetchViewUser,
+    fetchGoals,
+    fetchNailedPosts,
+    fetchFollowers,
+  ]);
 
   const nailedGoals = useMemo(() => {
     return goals.filter((goal) => goal.status === "nailed it");
@@ -82,8 +82,18 @@ const Dashboard = () => {
 
   if (!user || !token || !viewUser) {
     return (
-      <Box flex={1} justifyContent="center" alignItems="center" p={4}>
+      <Box flex={1} justifyContent="center" alignItems="center" $base-px="$4">
         <Text color="$gray900">Please log in to view the dashboard.</Text>
+      </Box>
+    );
+  }
+
+  if (!viewUser) {
+    return (
+      <Box flex={1} justifyContent="center" alignItems="center" $base-px="$4">
+        <Text color="$gray900" fontSize={18}>
+          Loading user data...
+        </Text>
       </Box>
     );
   }
@@ -101,14 +111,14 @@ const Dashboard = () => {
   ];
 
   return (
-    <Box p="$3" flex={1}>
-      <VStack space="lg">
+    <Box padding={3} flex={1}>
+      <VStack style={{ gap: 10 }}>
         <Box
           flexDirection="row"
           justifyContent="space-between"
           alignItems="flex-end"
         >
-          <Box flexDirection="row" alignItems="center" space="md">
+          <Box flexDirection="row" alignItems="center" style={{ gap: 5 }}>
             <ProfileHeader
               userId={viewUser.id}
               storedId={user.id}
@@ -141,24 +151,24 @@ const Dashboard = () => {
                   ))}
                   {extraFollowersCount > 0 && (
                     <Box
-                      w="$7"
-                      h="$7"
+                      width={7}
+                      height={7}
                       borderRadius="$lg"
-                      bg="$gray300"
+                      backgroundColor="$gray300"
                       alignItems="center"
                       justifyContent="center"
                       borderWidth={2}
                       borderColor="$white"
                       zIndex={0}
                     >
-                      <Text color="$white" fontSize="$sm" fontWeight="$medium">
+                      <Text color="$white" fontSize={12} fontWeight="$medium">
                         +{extraFollowersCount}
                       </Text>
                     </Box>
                   )}
                 </Box>
               ) : (
-                <Text color="$gray500" fontSize="$xs">
+                <Text color="$gray500" fontSize={8}>
                   Be the first to vibe
                 </Text>
               )}
@@ -174,7 +184,7 @@ const Dashboard = () => {
           )}
         </Box>
 
-        <Text color="$gray900" fontSize="$lg" fontWeight="$medium" mb="$2">
+        <Text color="$gray900" fontSize={16} fontWeight="$medium" marginBottom={2}>
           {viewUser.username}'s grab goals
         </Text>
 
@@ -215,7 +225,7 @@ const Dashboard = () => {
           left={0}
           right={0}
           bottom={0}
-          bg="$black"
+          backgroundColor="$black"
           opacity={0.5}
           justifyContent="center"
           alignItems="center"
@@ -223,15 +233,15 @@ const Dashboard = () => {
           onTouchStart={() => setIsFollowersModalOpen(false)}
         >
           <Box
-            bg="$white"
+            backgroundColor="$white"
             borderRadius="$lg"
-            p="$6"
-            w="85%"
+            padding={6}
+            width="85%"
             maxWidth={400}
             onTouchStart={(e: any) => e.stopPropagation()}
           >
-            <Box flexDirection="row" justifyContent="space-between" mb="$4">
-              <Text color="$gray900" fontSize="$lg" fontWeight="$bold">
+            <Box flexDirection="row" justifyContent="space-between" marginBottom={4}>
+              <Text color="$gray900" fontSize={16} fontWeight="$bold">
                 Followers {followers.length}
               </Text>
             </Box>

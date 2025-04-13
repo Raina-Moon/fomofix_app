@@ -13,17 +13,17 @@ interface ChartComponentProps {
 }
 
 const ChartComponent = ({
-  nailedPosts,
+  nailedPosts = [],
   failedPosts = [],
   chartPeriod,
   setChartPeriod,
   isOwnProfile,
 }: ChartComponentProps) => {
   const chartData: ChartData[] = useMemo(() => {
-    if (!nailedPosts || nailedPosts.length === 0) return [];
+    if (!nailedPosts.length) return [];
 
     const processData = (
-      posts: Goal[],
+      posts: Goal[] = [],
       key: "nailedDuration" | "failedDuration"
     ): ChartData[] => {
       if (chartPeriod === "day") {
@@ -182,19 +182,19 @@ const ChartComponent = ({
 
   return (
     <Box
-      bg="$white"
+    backgroundColor="$white"
       borderRadius="$lg"
-      p="$4"
+      padding={4}
       borderWidth={1}
       borderColor="$gray300"
-      mb="$4"
+      marginBottom={4}
     >
       {/* Header */}
-      <Box mb="$4">
-        <Text fontSize="$lg" fontWeight="$semibold">
+      <Box marginBottom={4}>
+        <Text fontSize={16} fontWeight="$semibold">
           Success Duration
         </Text>
-        <Text fontSize="$sm" color="$gray600">
+        <Text fontSize={12} color="$gray600">
           {chartPeriod === "day" && "Last 24 Hours"}
           {chartPeriod === "week" && "Last 7 Days"}
           {chartPeriod === "month" && "Last 30 Days"}
@@ -203,67 +203,67 @@ const ChartComponent = ({
       </Box>
 
       {/* Period Buttons */}
-      <Box flexDirection="row" justifyContent="flex-end" mb="$4" gap="$2">
+      <Box flexDirection="row" justifyContent="flex-end" marginBottom={4} gap="$2">
         <Pressable
-          bg={chartPeriod === "day" ? "$primary600" : "$gray200"}
+          backgroundColor={chartPeriod === "day" ? "$primary600" : "$gray200"}
           borderWidth={1}
           borderColor={chartPeriod === "day" ? "$primary600" : "$gray300"}
           borderRadius="$sm"
-          px="$3"
-          py="$2"
+          $base-px="$3"
+          $base-py="$2"
           onPress={() => setChartPeriod("day")}
         >
           <Text
             color={chartPeriod === "day" ? "$white" : "$gray900"}
-            fontSize="$sm"
+            fontSize={8}
           >
             Day
           </Text>
         </Pressable>
         <Pressable
-          bg={chartPeriod === "week" ? "$primary600" : "$gray200"}
+          backgroundColor={chartPeriod === "week" ? "$primary600" : "$gray200"}
           borderWidth={1}
           borderColor={chartPeriod === "week" ? "$primary600" : "$gray300"}
           borderRadius="$sm"
-          px="$3"
-          py="$2"
+          $base-px="$3"
+          $base-py="$2"
           onPress={() => setChartPeriod("week")}
         >
           <Text
             color={chartPeriod === "week" ? "$white" : "$gray900"}
-            fontSize="$sm"
+            fontSize={8}
           >
             Week
           </Text>
         </Pressable>
         <Pressable
-          bg={chartPeriod === "month" ? "$primary600" : "$gray200"}
+          backgroundColor={chartPeriod === "month" ? "$primary600" : "$gray200"}
           borderWidth={1}
           borderColor={chartPeriod === "month" ? "$primary600" : "$gray300"}
           borderRadius="$sm"
-          px="$3"
-          py="$2"
+          $base-px="$3"
+          $base-py="$2"
           onPress={() => setChartPeriod("month")}
         >
           <Text
             color={chartPeriod === "month" ? "$white" : "$gray900"}
-            fontSize="$sm"
+            fontSize={8}
           >
             Month
           </Text>
         </Pressable>
         <Pressable
-          bg={chartPeriod === "year" ? "$primary600" : "$gray200"}
+          backgroundColor={chartPeriod === "year" ? "$primary600" : "$gray200"}
           borderWidth={1}
           borderColor={chartPeriod === "year" ? "$primary600" : "$gray300"}
           borderRadius="$sm"
-          px="$3"
-          py="$2"
+          $base-px="$3"
+          $base-py="$2"
           onPress={() => setChartPeriod("year")}
         >
           <Text
             color={chartPeriod === "year" ? "$white" : "$gray900"}
-            fontSize="$sm"
+            fontSize={8}
           >
             Year
           </Text>
@@ -271,23 +271,35 @@ const ChartComponent = ({
       </Box>
 
       {/* Bar Chart */}
-      <Box height={300}>
-        <BarChart
-          width={chartWidth}
-          height={300}
-          data={barData}
-          barWidth={isOwnProfile ? 20 : 10}
-          spacing={isOwnProfile ? 10 : 5}
-          noOfSections={Math.ceil((maxDuration + 10) / 10)}
-          maxValue={maxDuration + 10}
-          yAxisTextStyle={styles.axisText}
-          xAxisLabelTextStyle={styles.axisText}
-          formatYLabel={(label: any) =>
-            chartPeriod === "day" ? label : label.slice(0, 6)
-          }
-          showFractionalValues={false}
-          isAnimated
-        />
+      <Box height={300} flexDirection="row">
+        <Box width={10} justifyContent="center" alignItems="center">
+          <Text
+            color="$gray600"
+            fontSize={8}
+            style={{ transform: [{ rotate: "-90deg" }] }}
+          >
+            Duration (min)
+          </Text>
+        </Box>
+        <Box flex={1}>
+          <BarChart
+            width={chartWidth}
+            height={300}
+            data={barData}
+            barWidth={isOwnProfile ? 20 : 10}
+            spacing={isOwnProfile ? 10 : 5}
+            noOfSections={Math.ceil((maxDuration + 10) / 10)}
+            maxValue={maxDuration + 10}
+            yAxisTextStyle={styles.axisText}
+            xAxisLabelTextStyle={styles.axisText}
+            formatYLabel={(label: string) =>
+              chartPeriod === "day" ? label : label.slice(0, 6)
+            }
+            showFractionalValues={false}
+            isAnimated
+            rotateLabel={chartPeriod !== "day"}
+          />
+        </Box>
       </Box>
     </Box>
   );

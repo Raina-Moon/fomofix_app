@@ -29,13 +29,15 @@ export const CustomTabs = ({
   return (
     <Box>
       {/* Tabs List */}
-      <Box flexDirection="row" justifyContent="space-between" mb="$4">
+      <Box flexDirection="row" justifyContent="space-between" marginBottom={16}>
         {tabs.map((tab) => (
           <Pressable
             key={tab.value}
             onPress={() => handleTabChange(tab.value)}
             flex={1}
-            bg={activeTab === tab.value ? "$primary600" : "$gray200"}
+            style={{
+              backgroundColor: activeTab === tab.value ? "$primary600" : "$gray200",
+            }}
             p="$2"
             borderRadius="$md"
             mx="$1"
