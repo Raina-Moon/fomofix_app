@@ -10,8 +10,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useGoals } from "@/contexts/GoalContext";
 import { useFollowers } from "@/contexts/FollowerContext";
 import { usePosts } from "@/contexts/PostContext";
-import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
-import { CustomTabs } from "@/components/ui/CustomTab";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+} from "react-native";
 import { useLocalSearchParams } from "expo-router";
 
 const Dashboard = () => {
@@ -113,93 +119,111 @@ const Dashboard = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.vStack}>
-        <View style={styles.rowSpaceBetweenAlignFlexEnd}>
-          <View style={styles.rowAlignCenter}>
-            <ProfileHeader
-              userId={viewUser.id}
-              storedId={user.id}
-              username={viewUser.username}
-              profileImage={
-                viewUser.profile_image || "/images/DefaultProfile.png"
-              }
-            />
-            <TouchableOpacity onPress={() => setIsFollowersModalOpen(true)}>
-              {displayedFollowers.length > 0 ? (
-                <View style={styles.rowAlignCenter}>
-                  {displayedFollowers.map((follower, index) => (
-                    <Image
-                      key={follower.id}
-                      source={{
-                        uri:
-                          follower.profile_image ||
-                          "/images/DefaultProfile.png",
-                      }}
-                      style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: 14,
-                        borderWidth: 2,
-                        borderColor: "white",
-                        marginLeft: index > 0 ? -15 : 0,
-                        zIndex: displayedFollowers.length - index,
-                      }}
-                    />
-                  ))}
-                  {extraFollowersCount > 0 && (
-                    <View style={styles.extraFollowers}>
-                      <Text style={styles.extraFollowersText}>
-                        +{extraFollowersCount}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              ) : (
-                <Text style={styles.smallGrayText}>Be the first to vibe</Text>
-              )}
-            </TouchableOpacity>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.vStack}>
+          <View style={styles.rowSpaceBetweenAlignFlexEnd}>
+            <View style={styles.rowAlignCenter}>
+              <ProfileHeader
+                userId={viewUser.id}
+                storedId={user.id}
+                username={viewUser.username}
+                profileImage={
+                  viewUser.profile_image || "/images/DefaultProfile.png"
+                }
+              />
+              <TouchableOpacity onPress={() => setIsFollowersModalOpen(true)}>
+                {displayedFollowers.length > 0 ? (
+                  <View style={styles.rowAlignCenter}>
+                    {displayedFollowers.map((follower, index) => (
+                      <Image
+                        key={follower.id}
+                        source={{
+                          uri:
+                            follower.profile_image ||
+                            "/images/DefaultProfile.png",
+                        }}
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: 14,
+                          borderWidth: 2,
+                          borderColor: "white",
+                          marginLeft: index > 0 ? -15 : 0,
+                          zIndex: displayedFollowers.length - index,
+                        }}
+                      />
+                    ))}
+                    {extraFollowersCount > 0 && (
+                      <View style={styles.extraFollowers}>
+                        <Text style={styles.extraFollowersText}>
+                          +{extraFollowersCount}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                ) : (
+                  <Text style={styles.smallGrayText}>Be the first to vibe</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+            {user.id !== viewUser.id && (
+              <FollowButton
+                storedId={user.id}
+                userId={viewUser.id}
+                isFollowing={isFollowing}
+                setIsFollowing={setIsFollowing}
+              />
+            )}
           </View>
-          {user.id !== viewUser.id && (
-            <FollowButton
-              storedId={user.id}
-              userId={viewUser.id}
-              isFollowing={isFollowing}
-              setIsFollowing={setIsFollowing}
-            />
-          )}
+
+          <Text style={styles.headerText}>
+            {viewUser.username}'s grab goals
+          </Text>
+
+          {/* Tabs */}
+          <View style={styles.tabContainer}>
+            {tabs.map((tab) => (
+              <TouchableOpacity
+                key={tab.value}
+                style={[
+                  styles.tabButton,
+                  activeTab === tab.value && styles.activeTabButton,
+                ]}
+                onPress={() => setActiveTab(tab.value)}
+              >
+                <Text
+                  style={[
+                    styles.tabText,
+                    activeTab === tab.value && styles.activeTabText,
+                  ]}
+                >
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Tab Content */}
+          <View style={styles.tabContent}>
+            {isOwnProfile && activeTab === "all" && <GoalsTab goals={goals} />}
+            {activeTab === "nailed" && (
+              <NailedPostsTab posts={nailedPosts} userId={user.id} />
+            )}
+            {isOwnProfile && activeTab === "failed" && (
+              <FailedGoalsTab goals={goals} />
+            )}
+            {activeTab === "chart" && (
+              <ChartComponent
+                nailedPosts={nailedGoals}
+                failedPosts={isOwnProfile ? failedPosts : undefined}
+                chartPeriod={chartPeriod}
+                setChartPeriod={setChartPeriod}
+                isOwnProfile={isOwnProfile}
+              />
+            )}
+          </View>
         </View>
-
-        <Text style={styles.headerText}>{viewUser.username}'s grab goals</Text>
-
-        <CustomTabs
-          tabs={tabs}
-          defaultValue="nailed"
-          onValueChange={setActiveTab}
-        >
-          {(activeTab) => (
-            <>
-              {isOwnProfile && activeTab === "all" && (
-                <GoalsTab goals={goals} />
-              )}
-              {activeTab === "nailed" && (
-                <NailedPostsTab posts={nailedPosts} userId={user.id} />
-              )}
-              {isOwnProfile && activeTab === "failed" && (
-                <FailedGoalsTab goals={goals} />
-              )}
-              {activeTab === "chart" && (
-                <ChartComponent
-                  nailedPosts={nailedGoals}
-                  failedPosts={isOwnProfile ? failedPosts : undefined}
-                  chartPeriod={chartPeriod}
-                  setChartPeriod={setChartPeriod}
-                  isOwnProfile={isOwnProfile}
-                />
-              )}
-            </>
-          )}
-        </CustomTabs>
-      </View>
+      </ScrollView>
 
       {isFollowersModalOpen && (
         <TouchableOpacity
@@ -235,6 +259,9 @@ export default Dashboard;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
+  scrollContainer: {
     padding: 12,
   },
   centeredContainer: {
@@ -242,6 +269,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 16,
+    backgroundColor: "#FFFFFF",
   },
   gray900Text: {
     color: "#212121",
@@ -250,6 +278,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   vStack: {
+    flex: 1,
   },
   rowSpaceBetweenAlignFlexEnd: {
     flexDirection: "row",
@@ -286,20 +315,46 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     marginBottom: 8,
   },
+  tabContainer: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: "#D1D5DB",
+    marginBottom: 12,
+  },
+  tabButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    marginRight: 8,
+  },
+  activeTabButton: {
+    borderBottomWidth: 2,
+    borderBottomColor: "#1EBD7B",
+  },
+  tabText: {
+    fontSize: 14,
+    color: "#6B7280",
+  },
+  activeTabText: {
+    color: "#1EBD7B",
+    fontWeight: "600",
+  },
+  tabContent: {
+    flex: 1,
+  },
   modalOverlay: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "black",
+    backgroundColor: "#000000",
     opacity: 0.5,
     justifyContent: "center",
     alignItems: "center",
     zIndex: 50,
   },
   modalContainer: {
-    backgroundColor: "white",
+    backgroundColor: "#FFFFFF",
     borderRadius: 10,
     padding: 24,
     width: "85%",

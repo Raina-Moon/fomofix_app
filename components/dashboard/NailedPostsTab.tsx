@@ -1,32 +1,23 @@
-"use client";
-
 import { useCallback, useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  Image,
+  Modal,
+  TextInput,
+  StyleSheet,
+  ListRenderItem,
+  StyleProp,
+  ViewStyle,
+} from "react-native";
+import { Picker } from "@react-native-picker/picker";
 import { Post } from "@/types";
 import { useLikes } from "@/contexts/LikesContext";
 import { useComments } from "@/contexts/CommentsContext";
 import { useBookmarks } from "@/contexts/BookmarksContext";
-import {
-  Select,
-  SelectTrigger,
-  SelectInput,
-  SelectPortal,
-  SelectBackdrop,
-  SelectContent,
-  SelectItem,
-  Box,
-  Text,
-  Pressable,
-} from "@gluestack-ui/themed";
 import { useRouter } from "expo-router";
-import {
-  Image,
-  TextInput,
-  TouchableOpacity,
-  StyleProp,
-  ViewStyle,
-  FlatList,
-} from "react-native";
-import { ListRenderItem } from "react-native";
 
 interface NailedPostsTabProps {
   posts: Post[];
@@ -161,7 +152,7 @@ const NailedPostsTab = ({ posts = [], userId }: NailedPostsTabProps) => {
 
   const handlePostClick = useCallback(
     (userId: number, postId: number) => {
-      router.push(`/${userId}/post/${postId}` as any);
+      router.push(`dashboard/${userId}/post/${postId}` as any);
     },
     [router]
   );
@@ -171,237 +162,323 @@ const NailedPostsTab = ({ posts = [], userId }: NailedPostsTabProps) => {
   const renderPost: ListRenderItem<Post> = ({ item }) => (
     <TouchableOpacity
       onPress={() => handlePostClick(item.user_id ?? 0, item.post_id)}
-      style={{ flex: 1 / 3, aspectRatio: 1, margin: 1 } as StyleProp<ViewStyle>}
+      style={styles.postItem}
     >
       {item.image_url ? (
         <Image
           source={{ uri: item.image_url }}
-          style={{ width: "100%", height: "100%", borderRadius: 4 }}
+          style={styles.postImage}
           alt={item.title}
         />
       ) : (
-        <Box
-          style={{
-            flex: 1,
-            backgroundColor: "#F3F4F6",
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: 4,
-          }}
-        >
-          <Text style={{ color: "#6B7280", fontSize: 14 }}>No Image</Text>
-        </Box>
+        <View style={styles.noImageContainer}>
+          <Text style={styles.noImageText}>No Image</Text>
+        </View>
       )}
     </TouchableOpacity>
   );
 
+  console.log("NailedPostsTab rendering", { posts, userId, selectedPostId });
+
   return (
-    <Box style={{ paddingHorizontal: 12, flex: 1 }}>
+    <View style={styles.container}>
       {/* Filter section */}
-      <Box style={{ alignItems: "flex-end", marginBottom: 16 }}>
-        <Select
+      <View style={styles.filterContainer}>
+        <Picker
+          selectedValue={sortBy}
           onValueChange={(value) => setSortBy(value)}
-          defaultValue="latest"
+          style={styles.picker}
         >
-          <SelectTrigger
-            style={{
-              borderWidth: 1,
-              borderColor: "#D1D5DB",
-              borderRadius: 6,
-              padding: 8,
-            }}
-          >
-            <SelectInput placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectPortal>
-            <SelectBackdrop />
-            <SelectContent>
-              <SelectItem label="Latest" value="latest" />
-              <SelectItem label="Oldest" value="oldest" />
-              <SelectItem label="Most Time" value="most-time" />
-              <SelectItem label="Shortest Time" value="least-time" />
-            </SelectContent>
-          </SelectPortal>
-        </Select>
-      </Box>
+          <Picker.Item label="Latest" value="latest" />
+          <Picker.Item label="Oldest" value="oldest" />
+          <Picker.Item label="Most Time" value="most-time" />
+          <Picker.Item label="Shortest Time" value="least-time" />
+        </Picker>
+      </View>
 
       {/* 3-column grid */}
-      <FlatList<Post>
+      <FlatList
         data={sortedPosts}
         renderItem={renderPost}
         keyExtractor={(item) => item.post_id.toString()}
         numColumns={3}
-        contentContainerStyle={{ paddingBottom: 16 }}
+        contentContainerStyle={styles.grid}
       />
 
       {/* Post modal */}
-      {selectedPost && (
-        <Box
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "#000000",
-            opacity: 0.75,
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 50,
-          }}
-          onTouchStart={closePostModal}
+      <Modal
+        visible={!!selectedPost}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={closePostModal}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={closePostModal}
         >
-          <Box
-            style={{
-              backgroundColor: "#FFFFFF",
-              borderRadius: 12,
-              width: "90%",
-              maxHeight: "80%",
-              padding: 16,
-            }}
-            onTouchStart={(e) => e.stopPropagation()}
-          >
-            <Box
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                marginBottom: 16,
-              }}
-            >
-              <Text
-                style={{ fontSize: 18, fontWeight: "600", color: "#111827" }}
-              >
-                {selectedPost.title || "Untitled"}
-              </Text>
-              <Pressable onPress={closePostModal}>
-                <Text style={{ fontSize: 16, color: "#111827" }}>✕</Text>
-              </Pressable>
-            </Box>
-            {selectedPost.image_url && (
-              <Image
-                source={{ uri: selectedPost.image_url }}
-                style={{ width: "100%", height: 300, borderRadius: 8 }}
-                alt={selectedPost.title}
-              />
-            )}
-            <Text style={{ fontSize: 14, color: "#6B7280", marginBottom: 8 }}>
-              Duration: {selectedPost.duration || 0} min
-            </Text>
-            <Text style={{ fontSize: 14, color: "#374151", marginBottom: 16 }}>
-              {selectedPost.description || "No description"}
-            </Text>
-            <Box style={{ flexDirection: "row", gap: 16, marginBottom: 16 }}>
-              <Pressable onPress={() => handleLike(selectedPost.post_id)}>
-                <Text style={{ color: "#DB2777", fontSize: 14 }}>
-                  {likeStatus[selectedPost.post_id] ? "❤️ Liked" : "🤍 Like"} (
-                  {likeCounts[selectedPost.post_id] ||
-                    selectedPost.like_count ||
-                    0}
-                  )
+          <View style={styles.modalContainer}>
+            {selectedPost && (
+              <View style={styles.modalContent}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>
+                    {selectedPost.title || "Untitled"}
+                  </Text>
+                  <TouchableOpacity onPress={closePostModal}>
+                    <Text style={styles.closeButton}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+                {selectedPost.image_url && (
+                  <Image
+                    source={{ uri: selectedPost.image_url }}
+                    style={styles.modalImage}
+                    alt={selectedPost.title}
+                  />
+                )}
+                <Text style={styles.modalDuration}>
+                  Duration: {selectedPost.duration || 0} min
                 </Text>
-              </Pressable>
-              <Pressable onPress={() => handleBookmark(selectedPost.post_id)}>
-                <Text style={{ color: "#F59E0B", fontSize: 14 }}>
-                  {bookmarkStatus[selectedPost.post_id]
-                    ? "⭐ Bookmarked"
-                    : "☆ Bookmark"}
+                <Text style={styles.modalDescription}>
+                  {selectedPost.description || "No description"}
                 </Text>
-              </Pressable>
-            </Box>
-            <Box>
-              <TextInput
-                value={newComments[selectedPost.post_id] || ""}
-                onChangeText={(text) =>
-                  setNewComments((prev) => ({
-                    ...prev,
-                    [selectedPost.post_id]: text,
-                  }))
-                }
-                placeholder="Add a comment..."
-                style={{
-                  borderWidth: 1,
-                  borderColor: "#D1D5DB",
-                  borderRadius: 4,
-                  paddingHorizontal: 8,
-                  paddingVertical: 4,
-                  fontSize: 14,
-                  marginBottom: 8,
-                }}
-              />
-              <Pressable onPress={() => submitComment(selectedPost.post_id)}>
-                <Text style={{ color: "#3B82F6", fontSize: 14 }}>
-                  Post Comment
-                </Text>
-              </Pressable>
-              <Box style={{ marginTop: 8 }}>
-                {(commentsByPost[selectedPost.post_id] || []).map((c) => (
-                  <Box
-                    key={c.id}
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      marginBottom: 8,
-                    }}
+                <View style={styles.modalActions}>
+                  <TouchableOpacity
+                    onPress={() => handleLike(selectedPost.post_id)}
                   >
-                    <Text
-                      style={{
-                        fontWeight: "bold",
-                        marginRight: 8,
-                        color: "#111827",
-                        fontSize: 14,
-                      }}
-                    >
-                      {c.username || "User"}:
+                    <Text style={styles.actionText}>
+                      {likeStatus[selectedPost.post_id]
+                        ? "❤️ Liked"
+                        : "🤍 Like"}{" "}
+                      (
+                      {likeCounts[selectedPost.post_id] ||
+                        selectedPost.like_count ||
+                        0}
+                      )
                     </Text>
-                    <TextInput
-                      value={commentEdit[c.id] ?? c.content}
-                      onChangeText={(text) =>
-                        setCommentEdit((prev) => ({
-                          ...prev,
-                          [c.id]: text,
-                        }))
-                      }
-                      style={{
-                        borderWidth: 1,
-                        borderColor: "#D1D5DB",
-                        borderRadius: 4,
-                        paddingHorizontal: 8,
-                        flex: 1,
-                        fontSize: 14,
-                      }}
-                    />
-                    <Pressable
-                      onPress={() =>
-                        handleEditComment(
-                          selectedPost.post_id,
-                          c.id,
-                          commentEdit[c.id] || c.content
-                        )
-                      }
-                      style={{ marginHorizontal: 8 }}
-                    >
-                      <Text style={{ color: "#22C55E", fontSize: 14 }}>
-                        Save
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() =>
-                        handleDeleteComment(selectedPost.post_id, c.id)
-                      }
-                    >
-                      <Text style={{ color: "#EF4444", fontSize: 14 }}>
-                        Delete
-                      </Text>
-                    </Pressable>
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-          </Box>
-        </Box>
-      )}
-    </Box>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleBookmark(selectedPost.post_id)}
+                  >
+                    <Text style={styles.actionText}>
+                      {bookmarkStatus[selectedPost.post_id]
+                        ? "⭐ Bookmarked"
+                        : "☆ Bookmark"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                <View>
+                  <TextInput
+                    value={newComments[selectedPost.post_id] || ""}
+                    onChangeText={(text) =>
+                      setNewComments((prev) => ({
+                        ...prev,
+                        [selectedPost.post_id]: text,
+                      }))
+                    }
+                    placeholder="Add a comment..."
+                    style={styles.commentInput}
+                  />
+                  <TouchableOpacity
+                    onPress={() => submitComment(selectedPost.post_id)}
+                  >
+                    <Text style={styles.commentButton}>Post Comment</Text>
+                  </TouchableOpacity>
+                  <View style={styles.commentsContainer}>
+                    {(commentsByPost[selectedPost.post_id] || []).map((c) => (
+                      <View key={c.id} style={styles.commentRow}>
+                        <Text style={styles.commentUsername}>
+                          {c.username || "User"}:
+                        </Text>
+                        <TextInput
+                          value={commentEdit[c.id] ?? c.content}
+                          onChangeText={(text) =>
+                            setCommentEdit((prev) => ({
+                              ...prev,
+                              [c.id]: text,
+                            }))
+                          }
+                          style={styles.commentEditInput}
+                        />
+                        <TouchableOpacity
+                          onPress={() =>
+                            handleEditComment(
+                              selectedPost.post_id,
+                              c.id,
+                              commentEdit[c.id] || c.content
+                            )
+                          }
+                          style={styles.commentAction}
+                        >
+                          <Text style={styles.commentActionText}>Save</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          onPress={() =>
+                            handleDeleteComment(selectedPost.post_id, c.id)
+                          }
+                          style={styles.commentAction}
+                        >
+                          <Text style={styles.commentActionDeleteText}>
+                            Delete
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              </View>
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </View>
   );
 };
 
 export default NailedPostsTab;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 12,
+    backgroundColor: "#FFFFFF",
+  },
+  filterContainer: {
+    alignItems: "flex-end",
+    marginBottom: 16,
+  },
+  picker: {
+    width: 150,
+    height: 44,
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 6,
+    backgroundColor: "#FFFFFF",
+  },
+  grid: {
+    paddingBottom: 16,
+  },
+  postItem: {
+    flex: 1 / 3,
+    aspectRatio: 1,
+    margin: 1,
+  },
+  postImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 4,
+  },
+  noImageContainer: {
+    flex: 1,
+    backgroundColor: "#F3F4F6",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 4,
+  },
+  noImageText: {
+    color: "#6B7280",
+    fontSize: 14,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "#000000",
+    opacity: 0.75,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContainer: {
+    width: "90%",
+    maxHeight: "80%",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 16,
+  },
+  modalContent: {
+    flex: 1,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#111827",
+  },
+  closeButton: {
+    fontSize: 16,
+    color: "#111827",
+  },
+  modalImage: {
+    width: "100%",
+    height: 300,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  modalDuration: {
+    fontSize: 14,
+    color: "#6B7280",
+    marginBottom: 8,
+  },
+  modalDescription: {
+    fontSize: 14,
+    color: "#374151",
+    marginBottom: 16,
+  },
+  modalActions: {
+    flexDirection: "row",
+    gap: 16,
+    marginBottom: 16,
+  },
+  actionText: {
+    fontSize: 14,
+    color: "#DB2777", // pink600 for like, yellow500 for bookmark
+  },
+  commentInput: {
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  commentButton: {
+    fontSize: 14,
+    color: "#3B82F6",
+    marginBottom: 8,
+  },
+  commentsContainer: {
+    marginTop: 8,
+  },
+  commentRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  commentUsername: {
+    fontWeight: "bold",
+    fontSize: 14,
+    color: "#111827",
+    marginRight: 8,
+  },
+  commentEditInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    fontSize: 14,
+  },
+  commentAction: {
+    marginHorizontal: 8,
+  },
+  commentActionText: {
+    fontSize: 14,
+    color: "#22C55E",
+  },
+  commentActionDeleteText: {
+    fontSize: 14,
+    color: "#EF4444",
+  },
+});
