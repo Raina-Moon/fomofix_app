@@ -178,8 +178,6 @@ const NailedPostsTab = ({ posts = [], userId }: NailedPostsTabProps) => {
     </TouchableOpacity>
   );
 
-  console.log("NailedPostsTab rendering", { posts, userId, selectedPostId });
-
   return (
     <View style={styles.container}>
       {/* Filter section */}
