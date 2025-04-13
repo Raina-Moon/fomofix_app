@@ -10,8 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useGoals } from "@/contexts/GoalContext";
 import { useFollowers } from "@/contexts/FollowerContext";
 import { usePosts } from "@/contexts/PostContext";
-import { Box, Text, VStack } from "@gluestack-ui/themed";
-import { Image, TouchableOpacity } from "react-native";
+import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { CustomTabs } from "@/components/ui/CustomTab";
 import { useLocalSearchParams } from "expo-router";
 
@@ -82,19 +81,21 @@ const Dashboard = () => {
 
   if (!user || !token || !viewUser) {
     return (
-      <Box flex={1} justifyContent="center" alignItems="center" $base-px="$4">
-        <Text color="$gray900">Please log in to view the dashboard.</Text>
-      </Box>
+      <View style={styles.centeredContainer}>
+        <Text style={styles.gray900Text}>
+          Please log in to view the dashboard.
+        </Text>
+      </View>
     );
   }
 
   if (!viewUser) {
     return (
-      <Box flex={1} justifyContent="center" alignItems="center" $base-px="$4">
-        <Text color="$gray900" fontSize={18}>
+      <View style={styles.centeredContainer}>
+        <Text style={[styles.gray900Text, styles.loadingText]}>
           Loading user data...
         </Text>
-      </Box>
+      </View>
     );
   }
 
@@ -111,14 +112,10 @@ const Dashboard = () => {
   ];
 
   return (
-    <Box padding={3} flex={1}>
-      <VStack style={{ gap: 10 }}>
-        <Box
-          flexDirection="row"
-          justifyContent="space-between"
-          alignItems="flex-end"
-        >
-          <Box flexDirection="row" alignItems="center" style={{ gap: 5 }}>
+    <View style={styles.container}>
+      <View style={styles.vStack}>
+        <View style={styles.rowSpaceBetweenAlignFlexEnd}>
+          <View style={styles.rowAlignCenter}>
             <ProfileHeader
               userId={viewUser.id}
               storedId={user.id}
@@ -129,7 +126,7 @@ const Dashboard = () => {
             />
             <TouchableOpacity onPress={() => setIsFollowersModalOpen(true)}>
               {displayedFollowers.length > 0 ? (
-                <Box flexDirection="row" alignItems="center">
+                <View style={styles.rowAlignCenter}>
                   {displayedFollowers.map((follower, index) => (
                     <Image
                       key={follower.id}
@@ -143,37 +140,25 @@ const Dashboard = () => {
                         height: 28,
                         borderRadius: 14,
                         borderWidth: 2,
-                        borderColor: "$white",
+                        borderColor: "white",
                         marginLeft: index > 0 ? -15 : 0,
                         zIndex: displayedFollowers.length - index,
                       }}
                     />
                   ))}
                   {extraFollowersCount > 0 && (
-                    <Box
-                      width={7}
-                      height={7}
-                      borderRadius="$lg"
-                      backgroundColor="$gray300"
-                      alignItems="center"
-                      justifyContent="center"
-                      borderWidth={2}
-                      borderColor="$white"
-                      zIndex={0}
-                    >
-                      <Text color="$white" fontSize={12} fontWeight="$medium">
+                    <View style={styles.extraFollowers}>
+                      <Text style={styles.extraFollowersText}>
                         +{extraFollowersCount}
                       </Text>
-                    </Box>
+                    </View>
                   )}
-                </Box>
+                </View>
               ) : (
-                <Text color="$gray500" fontSize={8}>
-                  Be the first to vibe
-                </Text>
+                <Text style={styles.smallGrayText}>Be the first to vibe</Text>
               )}
             </TouchableOpacity>
-          </Box>
+          </View>
           {user.id !== viewUser.id && (
             <FollowButton
               storedId={user.id}
@@ -182,11 +167,9 @@ const Dashboard = () => {
               setIsFollowing={setIsFollowing}
             />
           )}
-        </Box>
+        </View>
 
-        <Text color="$gray900" fontSize={16} fontWeight="$medium" marginBottom={2}>
-          {viewUser.username}'s grab goals
-        </Text>
+        <Text style={styles.headerText}>{viewUser.username}'s grab goals</Text>
 
         <CustomTabs
           tabs={tabs}
@@ -216,46 +199,120 @@ const Dashboard = () => {
             </>
           )}
         </CustomTabs>
-      </VStack>
+      </View>
 
       {isFollowersModalOpen && (
-        <Box
-          position="absolute"
-          top={0}
-          left={0}
-          right={0}
-          bottom={0}
-          backgroundColor="$black"
-          opacity={0.5}
-          justifyContent="center"
-          alignItems="center"
-          zIndex={50}
-          onTouchStart={() => setIsFollowersModalOpen(false)}
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setIsFollowersModalOpen(false)}
         >
-          <Box
-            backgroundColor="$white"
-            borderRadius="$lg"
-            padding={6}
-            width="85%"
-            maxWidth={400}
-            onTouchStart={(e: any) => e.stopPropagation()}
+          <TouchableOpacity
+            style={styles.modalContainer}
+            activeOpacity={1}
+            onPress={() => {}}
           >
-            <Box flexDirection="row" justifyContent="space-between" marginBottom={4}>
-              <Text color="$gray900" fontSize={16} fontWeight="$bold">
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalHeaderText}>
                 Followers {followers.length}
               </Text>
-            </Box>
+            </View>
             <FollowersList
               followers={followers.map((follower) => ({
                 ...follower,
                 profile_image: follower.profile_image ?? null,
               }))}
             />
-          </Box>
-        </Box>
+          </TouchableOpacity>
+        </TouchableOpacity>
       )}
-    </Box>
+    </View>
   );
 };
 
 export default Dashboard;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 12,
+  },
+  centeredContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 16,
+  },
+  gray900Text: {
+    color: "#212121",
+  },
+  loadingText: {
+    fontSize: 18,
+  },
+  vStack: {
+  },
+  rowSpaceBetweenAlignFlexEnd: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+  },
+  rowAlignCenter: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  extraFollowers: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#CCCCCC",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "white",
+    marginLeft: -15,
+  },
+  extraFollowersText: {
+    color: "white",
+    fontSize: 12,
+    fontWeight: "500",
+  },
+  smallGrayText: {
+    color: "#A0A0A0",
+    fontSize: 8,
+  },
+  headerText: {
+    color: "#212121",
+    fontSize: 16,
+    fontWeight: "500",
+    marginBottom: 8,
+  },
+  modalOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "black",
+    opacity: 0.5,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 50,
+  },
+  modalContainer: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 24,
+    width: "85%",
+    maxWidth: 400,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  modalHeaderText: {
+    color: "#212121",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+});

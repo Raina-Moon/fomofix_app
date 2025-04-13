@@ -6,11 +6,12 @@ import { IconSymbol } from "@/components/ui/IconSymbol";
 import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
 import Header from "@/components/Header";
+import { config } from "@/components/ui/gluestack-ui-provider/config";
 
 export default function TabLayout() {
   console.log("TabLayout rendering");
   return (
-    <GluestackUIProvider>
+    <GluestackUIProvider config={config}>
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: Colors.light.tint,
