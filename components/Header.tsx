@@ -17,14 +17,14 @@ const Header = () => {
     }
     await getProfile(user.id);
   }, [isLoggedIn, user?.id, user?.profile_image, getProfile]);
-  
+
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
 
   const handleNavigation = () => {
     if (isLoggedIn && user?.id) {
-      router.push(`/dashboard/${user.id}`);
+      router.replace(`/dashboard/${user.id}`);
     } else {
       router.push("/login");
     }
