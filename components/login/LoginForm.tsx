@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { Text, TouchableOpacity, View } from "react-native";
-import { useRouter } from "expo-router";
+import { usePathname, useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import GoBackArrow from "@/assets/icons/GoBackArrow";
@@ -10,11 +10,12 @@ import GlobalButton from "../ui/GlobalButton";
 
 const LoginForm = () => {
   const router = useRouter();
+  const pathname = usePathname();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  const { login, user } = useAuth();
+  const { login, user, isLoggedIn } = useAuth();
 
   const textColor = useThemeColor({}, "text");
   const primary600 = useThemeColor({}, "primary-600");
@@ -53,14 +54,14 @@ const LoginForm = () => {
   }, [email, password, login]);
 
   useEffect(() => {
-    if (user) {
+    if (isLoggedIn && user && pathname === "/login") {
       Toast.show({
         type: "success",
         text1: `Welcome back, ${user.username}!`,
       });
-      router.push("/");
+      router.replace("/(tabs)");
     }
-  }, [user]);
+  }, [isLoggedIn, user, pathname]);
 
   return (
     <View
@@ -78,7 +79,7 @@ const LoginForm = () => {
           textAlign: "center",
           color: white,
           fontSize: 20,
-          marginBottom:20,
+          marginBottom: 20,
           fontWeight: "bold",
         }}
       >
