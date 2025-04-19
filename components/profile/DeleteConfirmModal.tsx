@@ -1,4 +1,3 @@
-import React from "react";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { Text, TouchableOpacity, View } from "react-native";
 

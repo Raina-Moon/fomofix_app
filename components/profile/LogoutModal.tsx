@@ -1,5 +1,4 @@
 import { useThemeColor } from "@/hooks/useThemeColor";
-import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
 interface LogoutModalProps {

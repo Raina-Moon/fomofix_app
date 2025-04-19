@@ -1,4 +1,3 @@
-import React from "react";
 import GoBackArrow from "@/assets/icons/GoBackArrow";
 import { Post } from "@/types";
 import { Text, TouchableOpacity, View } from "react-native";
