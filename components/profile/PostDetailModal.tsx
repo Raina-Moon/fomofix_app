@@ -1,19 +1,17 @@
-"use client";
-
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 import { Post } from "@/types";
 import { useRouter } from "expo-router";
 import HeartFull from "@/assets/icons/HeartFull";
-import HeartEmpty from "../../../../../public/icons/HeartEmpty";
-import MessageIcon from "../../../../../public/icons/MessageIcon";
-import BookmarkFull from "../../../../../public/icons/BookmarkFull";
-import BookmarkEmpty from "../../../../../public/icons/BookmarkEmpty";
+import HeartEmpty from "@/assets/icons/HeartEmpty";
+import MessageIcon from "@/assets/icons/MessageIcon";
+import BookmarkFull from "@/assets/icons/BookmarkFull";
+import BookmarkEmpty from "@/assets/icons/BookmarkEmpty";
 import { useBookmarks } from "@/contexts/BookmarksContext";
 import { useLikes } from "@/contexts/LikesContext";
 import { useComments } from "@/contexts/CommentsContext";
 import CommentsModal from "@/components/PostsList/CommentsModal";
 import { formatTimeAgo } from "@/utils/formatTimeAgo";
-import { Image, Text, TouchableOpacity, View } from "react-native";
 import { useThemeColor } from "@/hooks/useThemeColor";
 
 interface PostDetailModalProps {
