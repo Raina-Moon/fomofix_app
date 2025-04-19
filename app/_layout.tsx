@@ -38,59 +38,62 @@ export default function RootLayout() {
   }
 
   return (
-      <ThemeProvider value={DefaultTheme}>
-        <AuthProvider>
-          <GoalProvider>
-            <PostProvider>
-              <FollowerProvider>
-                <BookmarksProvider>
-                  <LikesProvider>
-                    <CommentsProvider>
-                      <SafeAreaView style={{ flex: 1 }}>
-                        <Toast 
-                        position="bottom"/>
-                        <Stack
-                          screenOptions={{
-                            header: () => <Header />,
-                          }}
-                        >
-                          <Stack.Screen
-                            name="login"
-                            options={{ headerShown: false }}
-                          />
-                          <Stack.Screen
-                            name="signup"
-                            options={{ headerShown: false }}
-                          />
-                          <Stack.Screen
-                            name="forgot-password"
-                            options={{ headerShown: false }}
-                          />
-                          <Stack.Screen
-                            name="reset-password"
-                            options={{ headerShown: false }}
-                          />
-                          <Stack.Screen
-                            name="(tabs)"
-                            options={{ headerShown: false }}
-                          />
-                          <Stack.Screen
-                            name="dashboard/[userId]"
-                            options={{ title: "Dashboard" }}
-                            />
-                          <Stack.Screen
-                            name="+not-found"
-                            options={{ headerShown: true }}
-                          />
-                        </Stack>
-                      </SafeAreaView>
-                    </CommentsProvider>
-                  </LikesProvider>
-                </BookmarksProvider>
-              </FollowerProvider>
-            </PostProvider>
-          </GoalProvider>
-        </AuthProvider>
-      </ThemeProvider>
+    <ThemeProvider value={DefaultTheme}>
+      <AuthProvider>
+        <GoalProvider>
+          <PostProvider>
+            <FollowerProvider>
+              <BookmarksProvider>
+                <LikesProvider>
+                  <CommentsProvider>
+                    <SafeAreaView style={{ flex: 1 }}>
+                      <Toast position="bottom" />
+                      <Stack
+                        screenOptions={{
+                          header: () => <Header />,
+                        }}
+                      >
+                        <Stack.Screen
+                          name="login"
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                          name="signup"
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                          name="forgot-password"
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                          name="reset-password"
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                          name="(tabs)"
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                          name="dashboard/[userId]"
+                          options={{ title: "Dashboard" }}
+                        />
+                        <Stack.Screen
+                          name="profile/[userId]"
+                          options={{ title: "Profile" }}
+                        />
+                        <Stack.Screen
+                          name="+not-found"
+                          options={{ headerShown: true }}
+                        />
+                      </Stack>
+                    </SafeAreaView>
+                  </CommentsProvider>
+                </LikesProvider>
+              </BookmarksProvider>
+            </FollowerProvider>
+          </PostProvider>
+        </GoalProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
