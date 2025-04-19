@@ -1,11 +1,12 @@
-import React, { useState } from "react";
-import CameraIcon from "../../../../../public/icons/CameraIcon";
-import BellIcon from "../../../../../public/icons/BellIcon";
-import LockIcon from "../../../../../public/icons/LockIcon";
-import SavedIcon from "../../../../../public/icons/SavedIcon";
-import LogoutIcon from "../../../../../public/icons/LogoutIcon";
-import ArrowRightIcon from "../../../../../public/icons/ArrowRightIcon";
-import PencilIcon from "../../../../../public/icons/PencilIcon";
+import { useState } from "react";
+import * as ImagePicker from "expo-image-picker";
+import CameraIcon from "@/assets/icons/CameraIcon";
+import BellIcon from "@/assets/icons/BellIcon";
+import LockIcon from "@/assets/icons/LockIcon";
+import SavedIcon from "@/assets/icons/SavedIcon";
+import LogoutIcon from "@/assets/icons/LogoutIcon";
+import ArrowRightIcon from "@/assets/icons/ArrowRightIcon";
+import PencilIcon from "@/assets/icons/PencilIcon";
 import {
   Image,
   Switch,
@@ -15,7 +16,7 @@ import {
   Text,
 } from "react-native";
 import ChangePasswordModal from "./ChangePasswordModal";
-import DeleteIcon from "../../../../../public/icons/DeleteIcon";
+import DeleteIcon from "@/assets/icons/DeleteIcon";
 import { useThemeColor } from "@/hooks/useThemeColor";
 
 interface ProfileCardProps {
@@ -49,6 +50,33 @@ const ProfileCard = ({
   const [newUsername, setNewUsername] = useState(user.username);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets[0].uri) {
+      const uri = result.assets[0].uri;
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      const file = new File([blob], "profile.jpg", { type: blob.type });
+
+      if (blob.size > 2 * 1024 * 1024) {
+        setErrorMessage("Image must be less than 2MB.");
+        setSelectedFile(null);
+        setImagePreview(null);
+        return;
+      }
+
+      setSelectedFile(file);
+      setImagePreview(uri);
+      setErrorMessage(null);
+    }
+  };
 
   const handleUpdateProfile = async () => {
     try {
@@ -121,9 +149,12 @@ const ProfileCard = ({
             borderRadius: 40,
             resizeMode: "cover",
           }}
-          source={
-            imagePreview || user.profile_image || "/images/DefaultProfile.png"
-          }
+          source={{
+            uri:
+              imagePreview ||
+              user.profile_image ||
+              "/images/DefaultProfile.png",
+          }}
         />
         {isEditing && (
           <TouchableOpacity
@@ -138,59 +169,36 @@ const ProfileCard = ({
               justifyContent: "center",
               alignItems: "center",
             }}
-            onPress={() => document.getElementById("imageUpload")?.click()}
+            onPress={pickImage}
           >
             <CameraIcon />
           </TouchableOpacity>
         )}
-        <TextInput
-          id="imageUpload"
-          className="hidden"
-          onChangeText={(e) => {
-            const file = e.target.files?.[0];
-            if (file) {
-              if (file.size > 2 * 1024 * 1024) {
-                setErrorMessage("Image must be less than 2MB.");
-                setSelectedFile(null);
-                setImagePreview(null);
-                return;
-              }
-              setSelectedFile(file);
-              setImagePreview(URL.createObjectURL(file));
-              setErrorMessage(null);
-            }
-          }}
-        />
-      </View>
 
-      {/* User Info */}
-      <View className="text-center mb-4 flex flex-col">
-        <View className="text-gray-900 text-lg">
-          {isEditing ? (
-            <TextInput
-              value={newUsername}
-              onChangeText={setNewUsername}
-              style={{
-                borderBottomWidth: 1,
-                borderColor: gray400,
-                paddingVertical: 4,
-                paddingHorizontal: 8,
-                color: gray900,
-                fontSize: 16,
-              }}
-            />
-          ) : (
-            user.username
-          )}
-          {!isEditing && (
-            <TouchableOpacity
-              style={{ marginLeft: 8 }}
-              onPress={() => setIsEditing(true)}
-            >
+        <View style={{ alignItems: "center", marginBottom: 16 }}></View>
+        {isEditing ? (
+          <TextInput
+            value={newUsername}
+            onChangeText={setNewUsername}
+            style={{
+              borderBottomWidth: 1,
+              borderBottomColor: gray400,
+              fontSize: 18,
+              textAlign: "center",
+              paddingVertical: 4,
+            }}
+          />
+        ) : (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Text style={{ fontSize: 18, color: gray900 }}>
+              {user.username}
+            </Text>
+            <TouchableOpacity onPress={() => setIsEditing(true)}>
               <PencilIcon />
             </TouchableOpacity>
-          )}
-        </View>
+          </View>
+        )}
+
         <Text
           style={{
             color: gray500,
@@ -200,27 +208,19 @@ const ProfileCard = ({
         >
           {user.email}
         </Text>
+
         {isEditing && (
-          <View
+          <TouchableOpacity
             style={{
-              marginTop: 8,
-              flexDirection: "row",
-              justifyContent: "center",
-              alignItems: "center",
+              backgroundColor: primary500,
+              paddingVertical: 12,
+              paddingHorizontal: 8,
+              borderRadius: 8,
             }}
+            onPress={handleUpdateProfile}
           >
-            <TouchableOpacity
-              style={{
-                backgroundColor: primary500,
-                paddingVertical: 12,
-                paddingHorizontal: 8,
-                borderRadius: 8,
-              }}
-              onPress={handleUpdateProfile}
-            >
-              <Text style={{ color: white, fontSize: 8 }}>Save</Text>
-            </TouchableOpacity>
-          </View>
+            <Text style={{ color: white, fontSize: 8 }}>Save</Text>
+          </TouchableOpacity>
         )}
       </View>
 
