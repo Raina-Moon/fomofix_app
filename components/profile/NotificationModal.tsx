@@ -1,6 +1,3 @@
-"use client";
-
-import React from "react";
 import GoBackArrow from "@/assets/icons/GoBackArrow";
 import { Notification } from "@/types";
 import { formatTimeAgo } from "@/utils/formatTimeAgo";
@@ -79,7 +76,7 @@ const NotificationModal = ({
               style={{
                 flex: 1,
               }}
-              onpress={() => onMarkAsRead(item.id)}
+              onPress={() => onMarkAsRead(item.id)}
             >
               <Text>{item.message}</Text>
             </TouchableOpacity>
