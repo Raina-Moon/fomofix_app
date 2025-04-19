@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from "react";
-import { View, Text, TouchableOpacity, Image,StatusBar } from "react-native";
+import { View, Text, TouchableOpacity, Image, StatusBar } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "../contexts/AuthContext";
 import { useThemeColor } from "@/hooks/useThemeColor";
@@ -13,7 +13,7 @@ const Header = () => {
 
   const fetchProfile = useCallback(async () => {
     if (!isLoggedIn || !user?.id || user.profile_image) {
-      return;
+      return null;
     }
     await getProfile(user.id);
   }, [isLoggedIn, user?.id, user?.profile_image, getProfile]);
@@ -23,13 +23,18 @@ const Header = () => {
   }, [fetchProfile]);
 
   const handleNavigation = () => {
+    console.log("🚀 handleNavigation called");
+
     if (isLoggedIn && user?.id) {
+      console.log("✅ going to dashboard");
+
       router.replace(`/dashboard/${user.id}`);
     } else {
+      console.log("❌ going to login");
+
       router.push("/login");
     }
   };
-
 
   return (
     <View
