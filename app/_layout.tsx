@@ -51,7 +51,6 @@ export default function RootLayout() {
                         position="bottom"/>
                         <Stack
                           screenOptions={{
-                            headerShown: true,
                             header: () => <Header />,
                           }}
                         >
@@ -77,8 +76,8 @@ export default function RootLayout() {
                           />
                           <Stack.Screen
                             name="dashboard/[userId]"
-                            options={{ headerShown: true }}
-                          />
+                            options={{ title: "Dashboard" }}
+                            />
                           <Stack.Screen
                             name="+not-found"
                             options={{ headerShown: true }}

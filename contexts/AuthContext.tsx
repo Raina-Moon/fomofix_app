@@ -88,12 +88,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const initializeAuth = async () => {
       const storedToken = localStorage.getItem(TOKEN_KEY);
       const storedUser = localStorage.getItem(USER_KEY);
-      if (storedToken && storedUser) {
-        const isValid = await verifyToken(storedToken);
+      if (storedToken && storedUser && storedToken !== token) {
+                const isValid = await verifyToken(storedToken);
         if (isValid) {
-          setToken(storedToken);
-          setUser(JSON.parse(storedUser));
-          setIsLoggedIn(true);
+          const parsedUser = JSON.parse(storedUser);
+        setToken(storedToken);
+        setUser((prev) =>
+          JSON.stringify(prev) === storedUser ? prev : parsedUser
+        );
+        setIsLoggedIn(true);
         } else {
           localStorage.removeItem(TOKEN_KEY);
           localStorage.removeItem(USER_KEY);
@@ -105,8 +108,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     initializeAuth();
-  }, []);
-
+  }, [token]);
+  
   // Function to verify the current password
   const verifyCurrentPassword = async (
     email: string,
