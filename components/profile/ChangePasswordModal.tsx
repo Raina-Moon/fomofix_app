@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import GlobalInput from "@/components/ui/GlobalInput";
 import GlobalButton from "@/components/ui/GlobalButton";
@@ -21,7 +21,7 @@ const ChangePasswordModal = ({ onClose }: ChangePasswordModalProps) => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const validatePassword = (password: string) => {
-    const errors = [];
+    const errors:string[] = [];
     if (!/[A-Z]/.test(password)) errors.push("uppercase");
     if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) errors.push("special char");
     if (!/\d/.test(password)) errors.push("number");
