@@ -7,6 +7,7 @@ import {
 } from "react";
 import { fetchApi } from "@/constants/api/fetch";
 import { User } from "@/types";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface AuthState {
   token: string | null;
@@ -54,6 +55,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [viewUser, setViewUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Initialize state from AsyncStorage on first render
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        const storedToken = await AsyncStorage.getItem(TOKEN_KEY);
+        const storedUser = await AsyncStorage.getItem(USER_KEY);
+        if (storedToken && storedUser) {
+          const isValid = await verifyToken(storedToken);
+          if (isValid) {
+            const parsedUser = JSON.parse(storedUser);
+            setToken(storedToken);
+            setUser(parsedUser);
+            setIsLoggedIn(true);
+          } else {
+            await AsyncStorage.multiRemove([TOKEN_KEY, USER_KEY]);
+            setToken(null);
+            setUser(null);
+            setIsLoggedIn(false);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to initialize auth:", err);
+        await AsyncStorage.multiRemove([TOKEN_KEY, USER_KEY]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    initializeAuth();
+  }, []);
 
   const fetchViewUser = async (id: number) => {
     try {
@@ -83,33 +115,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Initialize state from localStorage on first render
-  useEffect(() => {
-    const initializeAuth = async () => {
-      const storedToken = localStorage.getItem(TOKEN_KEY);
-      const storedUser = localStorage.getItem(USER_KEY);
-      if (storedToken && storedUser && storedToken !== token) {
-                const isValid = await verifyToken(storedToken);
-        if (isValid) {
-          const parsedUser = JSON.parse(storedUser);
-        setToken(storedToken);
-        setUser((prev) =>
-          JSON.stringify(prev) === storedUser ? prev : parsedUser
-        );
-        setIsLoggedIn(true);
-        } else {
-          localStorage.removeItem(TOKEN_KEY);
-          localStorage.removeItem(USER_KEY);
-          setToken(null);
-          setUser(null);
-          setIsLoggedIn(false);
-        }
-      }
-    };
-
-    initializeAuth();
-  }, [token]);
-  
   // Function to verify the current password
   const verifyCurrentPassword = async (
     email: string,
@@ -168,8 +173,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setToken(userData.token);
       setUser(userData.user);
       setIsLoggedIn(true);
-      localStorage.setItem(TOKEN_KEY, userData.token);
-      localStorage.setItem(USER_KEY, JSON.stringify(userData.user));
+      await AsyncStorage.multiSet([
+        [TOKEN_KEY, userData.token],
+        [USER_KEY, JSON.stringify(userData.user)],
+      ]);
     } catch (err: any) {
       if (err.message.includes("Username already exists")) {
         throw new Error("Username is already taken");
@@ -189,16 +196,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setToken(userData.token);
     setUser(userData.user);
     setIsLoggedIn(true);
-    localStorage.setItem(TOKEN_KEY, userData.token);
-    localStorage.setItem(USER_KEY, JSON.stringify(userData.user));
+    await AsyncStorage.multiSet([
+      [TOKEN_KEY, userData.token],
+      [USER_KEY, JSON.stringify(userData.user)],
+    ]);
   };
 
-  const logout = () => {
+  const logout = async () => {
     setToken(null);
     setUser(null);
     setIsLoggedIn(false);
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    await AsyncStorage.multiRemove([TOKEN_KEY, USER_KEY]);
   };
 
   const getProfile = async (userId: number) => {
@@ -207,7 +215,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       headers: { Authorization: `Bearer ${token}` },
     });
     setUser(userProfile);
-    localStorage.setItem(USER_KEY, JSON.stringify(userProfile));
+    await AsyncStorage.setItem(USER_KEY, JSON.stringify(userProfile));
   };
 
   const updateProfile = async (userId: number, username: string) => {
@@ -225,7 +233,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         body: JSON.stringify({ username }),
       });
       setUser(updatedUser);
-      localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
+      await AsyncStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
     } catch (err: any) {
       if (err.message === "Username already exists") {
         throw new Error("Username is already taken");
@@ -247,7 +255,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
     setUser(updatedUser);
-    localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
+    await AsyncStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
   };
 
   const requestPasswordReset = async (email: string) => {
