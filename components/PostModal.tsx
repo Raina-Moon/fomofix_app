@@ -37,12 +37,14 @@ const PostModal = ({ isOpen, onClose, title, duration, onSubmit }: any) => {
       return;
     }
     const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ["images"],
       allowsEditing: true,
       quality: 1,
     });
     if (!res.canceled && res.assets[0]) {
-      setImage(res.assets[0]);
+      const asset = res.assets[0];
+      setImage(asset);
+      setPreviewImage(asset.uri);
     }
   };
 

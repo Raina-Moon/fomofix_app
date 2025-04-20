@@ -65,9 +65,6 @@ export const PostProvider = ({ children }: { children: ReactNode }) => {
     const data = await fetchApi<{ imageUrl: string }>("/posts/upload-image", {
       method: "POST",
       body: formData,
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
     });
     return data.imageUrl;
   };
