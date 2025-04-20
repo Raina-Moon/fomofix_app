@@ -58,6 +58,7 @@ const PostModal = ({ isOpen, onClose, title, duration, onSubmit }: any) => {
     }
     try {
       const imageUrl = await uploadPostImage(image);
+      console.log("✅ imageUrl:", imageUrl); // Debugging line
       onSubmit({ imageUrl, description });
       onClose();
     } catch (err) {

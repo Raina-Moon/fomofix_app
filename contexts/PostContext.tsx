@@ -41,6 +41,13 @@ export const PostProvider = ({ children }: { children: ReactNode }) => {
     imageUrl: string,
     description: string
   ) => {
+    console.log("🚀 Call createPost", {
+      userId,
+      goalId,
+      imageUrl,
+      description,
+    }); //Debugging Line
+try {
     const newPost = await fetchApi<Post>("/posts", {
       method: "POST",
       body: JSON.stringify({
@@ -50,8 +57,13 @@ export const PostProvider = ({ children }: { children: ReactNode }) => {
         description,
       }),
     });
+    console.log("✅ createPost Response:", newPost); // Debugging line
     setNailedPosts((prev) => [...prev, newPost]);
-  };
+  } catch (err) {
+    console.error("❌ createPost Error:", err);
+    throw err;
+  }
+};
 
   const uploadPostImage = async (
     asset: ImagePicker.ImagePickerAsset
