@@ -5,7 +5,10 @@ import * as ImagePicker from "expo-image-picker";
 import Toast from "react-native-toast-message";
 import {
   Image,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -18,6 +21,12 @@ const PostModal = ({ isOpen, onClose, title, duration, onSubmit }: any) => {
   const [description, setDescription] = useState("");
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const { uploadPostImage } = usePosts();
+
+  const black = "#000000";
+  const white = "#FFFFFF";
+  const gray900 = useThemeColor({}, "gray-900");
+  const gray700 = useThemeColor({}, "gray-700");
+  const primary200 = useThemeColor({}, "primary-200");
 
   const handleImageClick = async () => {
     const permissionResult =
@@ -72,12 +81,6 @@ const PostModal = ({ isOpen, onClose, title, duration, onSubmit }: any) => {
 
   if (!isOpen) return null;
 
-  const black = "#000000";
-  const white = "#FFFFFF";
-  const gray900 = useThemeColor({}, "gray-900");
-  const gray700 = useThemeColor({}, "gray-700");
-  const primary200 = useThemeColor({}, "primary-200");
-
   return (
     <Modal visible={isOpen} transparent={true} animationType="fade">
       <View
@@ -88,104 +91,110 @@ const PostModal = ({ isOpen, onClose, title, duration, onSubmit }: any) => {
           alignItems: "center",
         }}
       >
-        {" "}
-        <View
-          style={{
-            backgroundColor: white,
-            padding: 24,
-            borderRadius: 12,
-            width: "90%",
-            maxWidth: 400,
-            shadowColor: black,
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.25,
-            shadowRadius: 4,
-            elevation: 5,
-          }}
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={80}
         >
-          <Text
-            style={{
-              fontSize: 20,
-              fontWeight: "medium",
-              marginBottom: 16,
-              textAlign: "center",
+          <ScrollView
+            contentContainerStyle={{
+              backgroundColor: white,
+              padding: 24,
+              borderRadius: 12,
+              width: "90%",
+              maxWidth: 400,
+              shadowColor: black,
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.25,
+              shadowRadius: 4,
+              elevation: 5,
             }}
-          >
-            {" "}
-            you nailed it!
-          </Text>
-          <Text
-            style={{
-              fontSize: 12,
-              marginBottom: 8,
-              color: gray700,
-            }}
-          >
-            {" "}
-            <Text
-              style={{
-                color: gray900,
-                fontWeight: "bold",
-              }}
-            >
-              Title:
-            </Text>{" "}
-            {title}
-          </Text>
-          <Text
-            style={{
-              fontSize: 12,
-              marginBottom: 8,
-              color: gray700,
-            }}
+            keyboardShouldPersistTaps="handled"
           >
             <Text
               style={{
-                color: gray900,
-                fontWeight: "bold",
+                fontSize: 20,
+                fontWeight: "medium",
+                marginBottom: 16,
+                textAlign: "center",
               }}
             >
-              Duration:
-            </Text>{" "}
-            {duration} minutes
-          </Text>
-          <TouchableOpacity
-            onPress={handleImageClick}
-            style={{ alignItems: "center", marginBottom: 12 }}
-          >
-            <Image
-              source={
-                previewImage
-                  ? { uri: previewImage }
-                  : require("@/assets/images/ImageUpload.png")
-              }
+              {" "}
+              you nailed it!
+            </Text>
+            <Text
               style={{
-                width: "100%",
-                maxWidth: 200,
-                height: 150,
-                borderRadius: 8,
+                fontSize: 12,
+                marginBottom: 8,
+                color: gray700,
               }}
-              resizeMode="contain"
+            >
+              {" "}
+              <Text
+                style={{
+                  color: gray900,
+                  fontWeight: "bold",
+                }}
+              >
+                Title:
+              </Text>{" "}
+              {title}
+            </Text>
+            <Text
+              style={{
+                fontSize: 12,
+                marginBottom: 8,
+                color: gray700,
+              }}
+            >
+              <Text
+                style={{
+                  color: gray900,
+                  fontWeight: "bold",
+                }}
+              >
+                Duration:
+              </Text>{" "}
+              {duration} minutes
+            </Text>
+            <TouchableOpacity
+              onPress={handleImageClick}
+              style={{ alignItems: "center", marginBottom: 12 }}
+            >
+              <Image
+                source={
+                  previewImage
+                    ? { uri: previewImage }
+                    : require("@/assets/images/ImageUpload.png")
+                }
+                style={{
+                  width: "100%",
+                  maxWidth: 200,
+                  height: 150,
+                  borderRadius: 8,
+                }}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+            <TextInput
+              value={description}
+              onChangeText={setDescription}
+              placeholder="So, what’s the vibe after nailing it?"
+              multiline
+              style={{
+                borderTopWidth: 1,
+                paddingTop: 8,
+                marginBottom: 16,
+                fontSize: 14,
+                minHeight: 80,
+                borderColor: primary200,
+                color: gray900,
+              }}
             />
-          </TouchableOpacity>
-          <TextInput
-            value={description}
-            onChangeText={setDescription}
-            placeholder="So, what’s the vibe after nailing it?"
-            multiline
-            style={{
-              borderTopWidth: 1,
-              paddingTop: 8,
-              marginBottom: 16,
-              fontSize: 14,
-              minHeight: 80,
-              borderColor: primary200,
-              color: gray900,
-            }}
-          />
 
-          <GlobalButton onPress={handleSubmit}>Post it</GlobalButton>
-        </View>
+            <GlobalButton onPress={handleSubmit}>Post it</GlobalButton>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </View>
     </Modal>
   );
