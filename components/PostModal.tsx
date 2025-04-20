@@ -92,16 +92,18 @@ const PostModal = ({ isOpen, onClose, title, duration, onSubmit }: any) => {
         }}
       >
         <KeyboardAvoidingView
-          style={{ flex: 1 }}
+          style={{ 
+            width:"90%",
+            maxWidth: 400,
+           }}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={80}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
         >
           <ScrollView
             contentContainerStyle={{
               backgroundColor: white,
               padding: 24,
               borderRadius: 12,
-              width: "90%",
               maxWidth: 400,
               shadowColor: black,
               shadowOffset: { width: 0, height: 2 },
