@@ -49,6 +49,7 @@ const PostModal = ({ isOpen, onClose, title, duration, onSubmit }: any) => {
   };
 
   const handleSubmit = async () => {
+    console.log("🔴 handleSubmit fired!", { image, description }); // Debbugging line
     if (!image || !description) {
       Toast.show({
         type: "error",
