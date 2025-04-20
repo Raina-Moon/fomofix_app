@@ -4,8 +4,10 @@ import { usePosts } from "@/contexts/PostContext";
 import { Post } from "@/types";
 import GoalForm from "@/components/GoalForm";
 import PostsList from "@/components/PostsList";
+import { useThemeColor } from "@/hooks/useThemeColor";
+import { View } from "react-native";
 
-const Page = () => {
+export default function HomeScreen() {
   const { user } = useAuth();
   const { fetchAllPosts } = usePosts();
 
@@ -25,13 +27,20 @@ const Page = () => {
     fetchAndShufflePosts();
   }, [fetchAndShufflePosts, user]);
 
-  return (
-    <>
-      <GoalForm />
-      <hr className="mb-5 border-t mx-5 border-primary-200" />
-      <PostsList posts={posts} userId={user ? Number(user.id) : null} />
-    </>
-  );
-};
+  const primary200 = useThemeColor({}, "primary-200");
 
-export default Page;
+  return (
+    <View style={{ flex: 1 }}>
+      <GoalForm />
+      <View
+        style={{
+          borderBottomWidth: 1,
+          marginVertical: 20,
+          marginHorizontal: 20,
+          borderBottomColor: primary200,
+        }}
+      />
+      <PostsList posts={posts} userId={user ? Number(user.id) : null} />
+    </View>
+  );
+}
