@@ -2,7 +2,7 @@ import { useState } from "react";
 import ExternalLink from "@/assets/icons/ExternalLink";
 import { formatTimeAgo } from "@/utils/formatTimeAgo";
 import * as Linking from "expo-linking";
-import Clipboard from "@react-native-clipboard/clipboard";
+import * as Clipboard from "expo-clipboard";
 import Toast from "react-native-toast-message";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import {
