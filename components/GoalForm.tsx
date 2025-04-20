@@ -46,28 +46,31 @@ const GoalForm = () => {
     }
   };
 
-  const handleSubmit = async () => {
-    if (!user || !user.id) {
+  const handleSubmit = () => {
+    if (!user?.id) {
       Toast.show({
         type: "info",
         text1: "Oops! looks like you're not logged in.",
         position: "bottom",
-
-        onPress: () => {
-          router.push("/login");
-        },
+        onPress: () => router.push("/login"),
       });
       return;
     }
-    try {
-      const newGoal = await createGoal(user.id, title, duration);
-      startTimer(newGoal.id, duration);
-    } catch (err) {
-      Toast.show({
-        type: "error",
-        text1: "error creating goal",
+  
+    startTimer(/* temp id */ 0, duration);
+  
+    createGoal(user.id, title, duration)
+      .then((newGoal) => {
+        setGoalId(newGoal.id);
+      })
+      .catch((err) => {
+        console.error(err);
+        setSecondsLeft(null);
+        Toast.show({
+          type: "error",
+          text1: "Error creating goal",
+        });
       });
-    }
   };
 
   const handlePostSubmit = async ({
