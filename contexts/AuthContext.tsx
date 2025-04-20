@@ -8,6 +8,7 @@ import {
 import { fetchApi } from "@/constants/api/fetch";
 import { User } from "@/types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 
 interface AuthState {
   token: string | null;
@@ -61,7 +62,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const storedToken = await AsyncStorage.getItem(TOKEN_KEY);
+        const storedToken = await SecureStore.getItem(TOKEN_KEY);
         const storedUser = await AsyncStorage.getItem(USER_KEY);
         if (storedToken && storedUser) {
           const isValid = await verifyToken(storedToken);
@@ -71,7 +72,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setUser(parsedUser);
             setIsLoggedIn(true);
           } else {
-            await AsyncStorage.multiRemove([TOKEN_KEY, USER_KEY]);
+            await SecureStore.deleteItemAsync(TOKEN_KEY);
+            await AsyncStorage.removeItem(USER_KEY);
             setToken(null);
             setUser(null);
             setIsLoggedIn(false);
@@ -79,7 +81,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       } catch (err) {
         console.error("Failed to initialize auth:", err);
-        await AsyncStorage.multiRemove([TOKEN_KEY, USER_KEY]);
+        await SecureStore.deleteItemAsync(TOKEN_KEY);
+        await AsyncStorage.removeItem(USER_KEY);
       } finally {
         setIsLoading(false);
       }
@@ -173,9 +176,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setToken(userData.token);
       setUser(userData.user);
       setIsLoggedIn(true);
-      await AsyncStorage.multiSet([
-        [TOKEN_KEY, userData.token],
-        [USER_KEY, JSON.stringify(userData.user)],
+      await Promise.all([
+        SecureStore.setItemAsync(TOKEN_KEY, userData.token),
+        AsyncStorage.setItem(USER_KEY, JSON.stringify(userData.user)),
       ]);
     } catch (err: any) {
       if (err.message.includes("Username already exists")) {
@@ -196,9 +199,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setToken(userData.token);
     setUser(userData.user);
     setIsLoggedIn(true);
-    await AsyncStorage.multiSet([
-      [TOKEN_KEY, userData.token],
-      [USER_KEY, JSON.stringify(userData.user)],
+    await Promise.all([
+      SecureStore.setItemAsync(TOKEN_KEY, userData.token),
+      AsyncStorage.setItem(USER_KEY, JSON.stringify(userData.user)),
     ]);
   };
 
@@ -206,7 +209,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setToken(null);
     setUser(null);
     setIsLoggedIn(false);
-    await AsyncStorage.multiRemove([TOKEN_KEY, USER_KEY]);
+    await Promise.all([
+      SecureStore.deleteItemAsync(TOKEN_KEY),
+      AsyncStorage.removeItem(USER_KEY),
+    ]);
   };
 
   const getProfile = async (userId: number) => {
