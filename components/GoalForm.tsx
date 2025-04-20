@@ -7,7 +7,7 @@ import { useGoals } from "@/contexts/GoalContext";
 import { usePosts } from "@/contexts/PostContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "expo-router";
-import timerAnimation from "@/assets/timerAnimation.json";
+import timerAnimation from "@/assets/animations/timerAnimation.json";
 import Toast from "react-native-toast-message";
 import { Image, Text, View } from "react-native";
 import { useThemeColor } from "@/hooks/useThemeColor";
