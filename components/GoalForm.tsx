@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "expo-router";
 import timerAnimation from "@/assets/animations/timerAnimation.json";
 import Toast from "react-native-toast-message";
-import { Image, Text, View } from "react-native";
+import { AppState, AppStateStatus, Image, Text, View } from "react-native";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import LottieView from "lottie-react-native";
 
@@ -113,55 +113,34 @@ const GoalForm = () => {
       setSecondsLeft((prev) => (prev !== null ? prev - 1 : null));
     }, 1000);
     return () => clearInterval(interval);
-  }, [secondsLeft, goalId, updateGoal]);
+  }, [secondsLeft, goalId, updateGoal,title]);
 
   const formatTime = (sec: number) =>
     `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
 
   // ✅ Fail on tab close or refresh
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      if (secondsLeft !== null && goalId) {
-        updateGoal(goalId, "failed out").catch((err) => {
-          console.error("Error updating goal:", err);
+    const handleAppStateChange = async (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'background' && secondsLeft !== null && goalId !== null) {
+        try {
+          await updateGoal(goalId, 'failed out');
           Toast.show({
-            type: "error",
-            text1: "Error updating goal status. Please try again.",
+            type: 'error',
+            text1: '😢 App backgrounded. Failed out.',
           });
-        });
+          setSecondsLeft(null);
+        } catch (err) {
+          console.error('Error updating goal:', err);
+          Toast.show({
+            type: 'error',
+            text1: 'Error updating goal status.',
+          });
+        }
       }
     };
 
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [secondsLeft, goalId, updateGoal]);
-
-  // ✅ Fail if user switches tab or minimizes window
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden && secondsLeft !== null && goalId !== null) {
-        updateGoal(goalId, "failed out")
-          .then(() => {
-            Toast.show({
-              type: "error",
-              text1: "😢 You left the page. Failed out.",
-            });
-            setSecondsLeft(null);
-          })
-          .catch((err) => {
-            console.error("Error updating goal:", err);
-            Toast.show({
-              type: "error",
-              text1: "Error updating goal status. Please try again.",
-            });
-          });
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription.remove();
   }, [secondsLeft, goalId, updateGoal]);
 
   const primary500 = useThemeColor({}, "primary-500");
