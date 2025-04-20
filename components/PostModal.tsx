@@ -28,26 +28,21 @@ const PostModal = ({ isOpen, onClose, title, duration, onSubmit }: any) => {
   const gray700 = useThemeColor({}, "gray-700");
   const primary200 = useThemeColor({}, "primary-200");
 
-  const handleImageClick = async () => {
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      Toast.show({
-        type: "error",
-        text1: "Permission to access gallery is required!",
-      });
+  if (!isOpen) return null;
+
+  const pickImage = async () => {
+    const { granted } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!granted) {
+      Toast.show({ type: "error", text1: "Gallery permission required" });
       return;
     }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
+    const res = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       quality: 1,
     });
-
-    if (!result.canceled && result.assets[0]) {
-      setImage(result.assets[0]);
-      setPreviewImage(result.assets[0].uri);
+    if (!res.canceled && res.assets[0]) {
+      setImage(res.assets[0]);
     }
   };
 
@@ -60,14 +55,7 @@ const PostModal = ({ isOpen, onClose, title, duration, onSubmit }: any) => {
       return;
     }
     try {
-      const file = new File(
-        [await (await fetch(image.uri)).blob()],
-        image.fileName || "image.jpg",
-        {
-          type: image.type || "image/jpeg",
-        }
-      );
-      const imageUrl = await uploadPostImage(file);
+      const imageUrl = await uploadPostImage(image);
       onSubmit({ imageUrl, description });
       onClose();
     } catch (err) {
@@ -78,8 +66,6 @@ const PostModal = ({ isOpen, onClose, title, duration, onSubmit }: any) => {
       });
     }
   };
-
-  if (!isOpen) return null;
 
   return (
     <Modal visible={isOpen} transparent={true} animationType="fade">
@@ -92,10 +78,10 @@ const PostModal = ({ isOpen, onClose, title, duration, onSubmit }: any) => {
         }}
       >
         <KeyboardAvoidingView
-          style={{ 
-            width:"90%",
+          style={{
+            width: "90%",
             maxWidth: 400,
-           }}
+          }}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
         >
@@ -160,7 +146,7 @@ const PostModal = ({ isOpen, onClose, title, duration, onSubmit }: any) => {
               {duration} minutes
             </Text>
             <TouchableOpacity
-              onPress={handleImageClick}
+              onPress={pickImage}
               style={{ alignItems: "center", marginBottom: 12 }}
             >
               <Image
