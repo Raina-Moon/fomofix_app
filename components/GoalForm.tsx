@@ -30,8 +30,7 @@ const GoalForm = () => {
     duration: number;
   } | null>(null);
 
-  const startTimer = (goalId: number, duration: number) => {
-    setGoalId(goalId);
+  const startTimer = (duration: number) => {
     setSecondsLeft(duration * 60);
   };
 
@@ -46,7 +45,7 @@ const GoalForm = () => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!user?.id) {
       Toast.show({
         type: "info",
@@ -56,21 +55,19 @@ const GoalForm = () => {
       });
       return;
     }
-  
-    startTimer(/* temp id */ 0, duration);
-  
-    createGoal(user.id, title, duration)
-      .then((newGoal) => {
-        setGoalId(newGoal.id);
-      })
-      .catch((err) => {
-        console.error(err);
-        setSecondsLeft(null);
-        Toast.show({
-          type: "error",
-          text1: "Error creating goal",
-        });
+
+    startTimer(duration);
+    try {
+      const newGoal = await createGoal(user.id, title, duration);
+
+      setGoalId(newGoal.id);
+    } catch (err) {
+      console.error(err);
+      Toast.show({
+        type: "error",
+        text1: "Error creating goal",
       });
+    }
   };
 
   const handlePostSubmit = async ({
@@ -90,25 +87,26 @@ const GoalForm = () => {
   useEffect(() => {
     if (secondsLeft === null) return;
 
-    if (secondsLeft <= 0 && goalId) {
-      updateGoal(goalId, "nailed it")
-        .then(() => {
-          Confetti();
-          Toast.show({
-            type: "success",
-            text1: "💪 Nailed it!",
-          });
-          setCompletedGoal({ id: goalId, title, duration });
-          setShowPostModal(true);
-          setSecondsLeft(null);
-        })
-        .catch((err) => {
+    if (secondsLeft <= 0) {
+      Confetti();
+      Toast.show({
+        type: "success",
+        text1: "💪 Nailed it!",
+      });
+      setCompletedGoal({ id: goalId ?? 0, title, duration });
+      setShowPostModal(true);
+      setSecondsLeft(null);
+
+      if (goalId) {
+        updateGoal(goalId, "nailed it").catch((err) => {
           console.error("Error updating goal:", err);
           Toast.show({
             type: "error",
             text1: "Error updating goal status. Please try again.",
           });
         });
+      }
+
       return;
     }
 
@@ -116,7 +114,7 @@ const GoalForm = () => {
       setSecondsLeft((prev) => (prev !== null ? prev - 1 : null));
     }, 1000);
     return () => clearInterval(interval);
-  }, [secondsLeft, goalId, updateGoal,title]);
+  }, [secondsLeft, goalId, updateGoal, title]);
 
   const formatTime = (sec: number) =>
     `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
@@ -124,25 +122,32 @@ const GoalForm = () => {
   // ✅ Fail on tab close or refresh
   useEffect(() => {
     const handleAppStateChange = async (nextAppState: AppStateStatus) => {
-      if (nextAppState === 'background' && secondsLeft !== null && goalId !== null) {
+      if (
+        nextAppState === "background" &&
+        secondsLeft !== null &&
+        goalId !== null
+      ) {
         try {
-          await updateGoal(goalId, 'failed out');
+          await updateGoal(goalId, "failed out");
           Toast.show({
-            type: 'error',
-            text1: '😢 App backgrounded. Failed out.',
+            type: "error",
+            text1: "😢 App backgrounded. Failed out.",
           });
           setSecondsLeft(null);
         } catch (err) {
-          console.error('Error updating goal:', err);
+          console.error("Error updating goal:", err);
           Toast.show({
-            type: 'error',
-            text1: 'Error updating goal status.',
+            type: "error",
+            text1: "Error updating goal status.",
           });
         }
       }
     };
 
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
     return () => subscription.remove();
   }, [secondsLeft, goalId, updateGoal]);
 
