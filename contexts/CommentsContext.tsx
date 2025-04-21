@@ -57,7 +57,7 @@ export const CommentsProvider = ({ children }: { children: ReactNode }) => {
       post_id: postId,
       content,
       username: user?.username || "You",
-      profile_image: user?.profile_image || "/images/DefaultProfile.png",
+      profile_image: user?.profile_image || "@/assets/images/DefaultProfile.png",
       created_at: new Date().toISOString(),
     };
 
@@ -149,6 +149,7 @@ export const CommentsProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteComment = async (postId: number, commentId: number) => {
+    const previousComments = commentsByPost[postId] || [];
     try {
       await fetchApi<{ message: string }>(`/comments/${commentId}`, {
         method: "DELETE",
@@ -163,6 +164,10 @@ export const CommentsProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("Unauthorized");
       }
       console.error("Error deleting comment:", err);
+      setCommentsByPost((prev) => ({
+        ...prev,
+        [postId]: previousComments,
+      }));
     }
   };
 
