@@ -111,7 +111,7 @@ const CommentsModal = ({
                   { color: gray900 },
                 ]}
               >
-                comments {comments.length > 0 && <span>{comments.length}</span>}
+                comments {comments.length > 0 && <Text>{comments.length}</Text>}
               </Text>
               <View
                 style={[
