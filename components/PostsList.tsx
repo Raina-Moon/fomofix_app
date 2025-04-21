@@ -71,7 +71,7 @@ const PostsList = ({ posts, userId }: PostsListProps) => {
             }
           } catch (err) {
             if (err instanceof Error && err.message.includes("Unauthorized")) {
-              router.push("/login");
+              setTimeout(() => router.push("/login"), 0);
               return;
             }
             console.error(`Error processing post ${post.post_id}:`, err);
@@ -104,17 +104,14 @@ const PostsList = ({ posts, userId }: PostsListProps) => {
 
   useEffect(() => {
     loadPosts();
-  }, [loadPosts]);
-
-  useEffect(() => {
     initializeData();
-  }, [initializeData]);
+  }, [loadPosts, initializeData]);
 
   const handleLoadMore = useCallback(() => {
     if (isLoading || displayedPosts.length >= filteredPosts.length) return;
     setIsLoading(true);
     setPage((prev) => prev + 1);
-  }, [isLoading, displayedPosts.length, filteredPosts.length]);
+  }, [isLoading, displayedPosts.length, filteredPosts.length, page]);
 
   const handleLike = async (postId: number) => {
     if (!userId) {

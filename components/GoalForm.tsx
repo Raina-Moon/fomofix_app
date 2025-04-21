@@ -40,7 +40,72 @@ const GoalForm = () => {
   useEffect(() => {
     goalIdRef.current = goalId;
     secondsLeftRef.current = secondsLeft;
-  }, [goalId, secondsLeft]);
+
+    const handleAppStateChange = async (nextAppState: AppStateStatus) => {
+      if (
+        (nextAppState === "background" || nextAppState === "inactive") &&
+        secondsLeftRef.current !== null &&
+        goalIdRef.current !== null
+      ) {
+        try {
+          await updateGoal(goalIdRef.current, "failed out");
+          setSecondsLeft(null);
+          setGoalId(null);
+          if (AppState.currentState === "active") {
+            Toast.show({
+              type: "error",
+              text1: "😢 App backgrounded. Failed out.",
+            });
+          }
+        } catch (err) {
+          console.error("Error updating goal:", err);
+          if (AppState.currentState === "active") {
+            Toast.show({
+              type: "error",
+              text1: "Error updating goal status.",
+            });
+          }
+        }
+      }
+    };
+
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
+
+    let interval: NodeJS.Timeout | null = null;
+    if (secondsLeft !== null) {
+      if (secondsLeft <= 0) {
+        Confetti();
+        Toast.show({
+          type: "success",
+          text1: "💪 Nailed it!",
+        });
+        setCompletedGoal({ id: goalId ?? 0, title, duration });
+        setShowPostModal(true);
+        setSecondsLeft(null);
+        if (goalId) {
+          updateGoal(goalId, "nailed it").catch((err) => {
+            console.error("Error updating goal:", err);
+            Toast.show({
+              type: "error",
+              text1: "Error updating goal status.",
+            });
+          });
+        }
+      } else {
+        interval = setInterval(() => {
+          setSecondsLeft((prev) => (prev !== null ? prev - 1 : null));
+        }, 1000);
+      }
+    }
+
+    return () => {
+      subscription.remove();
+      if (interval) clearInterval(interval);
+    };
+  }, [secondsLeft, goalId, title, updateGoal]);
 
   const startTimer = (duration: number, newGoalId: number) => {
     setSecondsLeft(duration * 60);
