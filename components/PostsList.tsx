@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "expo-router";
 import { Post } from "@/types";
 import { useLikes } from "@/contexts/LikesContext";
@@ -38,8 +38,9 @@ const PostsList = ({ posts, userId }: PostsListProps) => {
   const [displayedPosts, setDisplayedPosts] = useState<Post[]>([]);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  const white = "#FFFFFF";
+  const gray800 = useThemeColor({}, "gray-800");
 
   const filteredPosts = useMemo(
     () =>
@@ -55,17 +56,25 @@ const PostsList = ({ posts, userId }: PostsListProps) => {
     try {
       await Promise.all(
         filteredPosts.map(async (post) => {
-          await fetchComments(post.post_id);
-          counts[post.post_id] = await fetchLikeCount(post.post_id);
-          if (userId) {
-            status[post.post_id] = await getLikeStatus(post.post_id, userId);
-            const bookmarkedPosts = await fetchBookmarkedPosts(userId);
-            bookmarkStatusTemp[post.post_id] = bookmarkedPosts.some(
-              (bp) => bp.id === post.post_id
-            );
-          } else {
-            status[post.post_id] = false;
-            bookmarkStatusTemp[post.post_id] = false;
+          try {
+            await fetchComments(post.post_id);
+            counts[post.post_id] = await fetchLikeCount(post.post_id);
+            if (userId) {
+              status[post.post_id] = await getLikeStatus(post.post_id, userId);
+              const bookmarkedPosts = await fetchBookmarkedPosts(userId);
+              bookmarkStatusTemp[post.post_id] = bookmarkedPosts.some(
+                (bp) => bp.id === post.post_id
+              );
+            } else {
+              status[post.post_id] = false;
+              bookmarkStatusTemp[post.post_id] = false;
+            }
+          } catch (err) {
+            if (err instanceof Error && err.message.includes("Unauthorized")) {
+              setTimeout(() => router.push("/login"), 0);
+              return;
+            }
+            console.error(`Error processing post ${post.post_id}:`, err);
           }
         })
       );
@@ -75,7 +84,15 @@ const PostsList = ({ posts, userId }: PostsListProps) => {
     } catch (err) {
       console.error("Failed to initialize data:", err);
     }
-  }, [userId, filteredPosts]);
+  }, [
+    userId,
+    filteredPosts,
+    fetchComments,
+    fetchLikeCount,
+    getLikeStatus,
+    fetchBookmarkedPosts,
+    router,
+  ]);
 
   // Load more posts when the user scrolls to the bottom of the page
   const loadPosts = useCallback(() => {
@@ -87,17 +104,14 @@ const PostsList = ({ posts, userId }: PostsListProps) => {
 
   useEffect(() => {
     loadPosts();
-  }, [loadPosts]);
-
-  useEffect(() => {
     initializeData();
-  }, [initializeData]);
+  }, [loadPosts, initializeData]);
 
   const handleLoadMore = useCallback(() => {
     if (isLoading || displayedPosts.length >= filteredPosts.length) return;
     setIsLoading(true);
     setPage((prev) => prev + 1);
-  }, [isLoading, displayedPosts.length, filteredPosts.length]);
+  }, [isLoading, displayedPosts.length, filteredPosts.length, page]);
 
   const handleLike = async (postId: number) => {
     if (!userId) {
@@ -185,9 +199,6 @@ const PostsList = ({ posts, userId }: PostsListProps) => {
     }
     return null;
   };
-
-  const white = "#FFFFFF";
-  const gray800 = useThemeColor({}, "gray-800");
 
   return (
     <>

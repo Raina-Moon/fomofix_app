@@ -27,29 +27,37 @@ export const CommentsProvider = ({ children }: { children: ReactNode }) => {
   }>({});
   const { user } = useAuth();
 
-  // ✅ Fetch comments
   const fetchComments = async (postId: number) => {
     try {
       const data = await fetchApi<Comment[]>(`/comments/${postId}`);
+      if (!Array.isArray(data)) {
+        console.error(`Invalid comments data for post ${postId}:`, data);
+        setCommentsByPost((prev) => ({ ...prev, [postId]: [] }));
+        return;
+      }
       setCommentsByPost((prev) => ({ ...prev, [postId]: data }));
     } catch (err) {
+      if (err instanceof Error && err.message.includes("Unauthorized")) {
+        console.log("Unauthorized, redirecting to login");
+        throw new Error("Unauthorized");
+      }
       console.error("Error fetching comments:", err);
+      setCommentsByPost((prev) => ({ ...prev, [postId]: [] }));
     }
   };
 
-  // ✅ Add comment with optimistic UI update
   const addComment = async (
     userId: number,
     postId: number,
     content: string
   ) => {
     const tempComment: Comment = {
-      id: Date.now(), // Temporary ID for optimistic update
+      id: Date.now(),
       user_id: userId,
       post_id: postId,
       content,
       username: user?.username || "You",
-      profile_image: user?.profile_image || "/images/DefaultProfile.png",
+      profile_image: user?.profile_image || "@/assets/images/DefaultProfile.png",
       created_at: new Date().toISOString(),
     };
 
@@ -76,6 +84,10 @@ export const CommentsProvider = ({ children }: { children: ReactNode }) => {
         ),
       }));
     } catch (err) {
+      if (err instanceof Error && err.message.includes("Unauthorized")) {
+        console.log("Unauthorized, redirecting to login");
+        throw new Error("Unauthorized");
+      }
       console.error("Error adding comment:", err);
       setCommentsByPost((prev) => ({
         ...prev,
@@ -84,7 +96,6 @@ export const CommentsProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // ✅ Edit comment
   const editComment = async (
     postId: number,
     commentId: number,
@@ -98,7 +109,6 @@ export const CommentsProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    // Optimistic update
     setCommentsByPost((prev) => ({
       ...prev,
       [postId]: prev[postId].map((c) =>
@@ -125,6 +135,10 @@ export const CommentsProvider = ({ children }: { children: ReactNode }) => {
         ),
       }));
     } catch (err) {
+      if (err instanceof Error && err.message.includes("Unauthorized")) {
+        console.log("Unauthorized, redirecting to login");
+        throw new Error("Unauthorized");
+      }
       console.error("Error editing comment:", err);
       setCommentsByPost((prev) => ({
         ...prev,
@@ -134,8 +148,8 @@ export const CommentsProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // ✅ Delete comment
   const deleteComment = async (postId: number, commentId: number) => {
+    const previousComments = commentsByPost[postId] || [];
     try {
       await fetchApi<{ message: string }>(`/comments/${commentId}`, {
         method: "DELETE",
@@ -145,7 +159,15 @@ export const CommentsProvider = ({ children }: { children: ReactNode }) => {
         [postId]: prev[postId].filter((c) => c.id !== commentId),
       }));
     } catch (err) {
+      if (err instanceof Error && err.message.includes("Unauthorized")) {
+        console.log("Unauthorized, redirecting to login");
+        throw new Error("Unauthorized");
+      }
       console.error("Error deleting comment:", err);
+      setCommentsByPost((prev) => ({
+        ...prev,
+        [postId]: previousComments,
+      }));
     }
   };
 

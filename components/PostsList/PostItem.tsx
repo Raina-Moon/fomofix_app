@@ -52,7 +52,6 @@ const PostItem = ({
           backgroundColor: white,
         }}
       >
-        {" "}
         <PostContent
           title={post.title}
           duration={post.duration}

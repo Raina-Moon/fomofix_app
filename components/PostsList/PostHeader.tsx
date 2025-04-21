@@ -29,7 +29,6 @@ const PostHeader = ({ userId, username, profileImage }: PostHeaderProps) => {
         marginBottom: 8,
       }}
     >
-      {" "}
       <TouchableOpacity
         onPress={handleProfileClick}
         style={{
@@ -57,7 +56,6 @@ const PostHeader = ({ userId, username, profileImage }: PostHeaderProps) => {
             fontWeight: "medium",
           }}
         >
-          {" "}
           {username || "Unknown User"}
         </Text>
       </TouchableOpacity>
