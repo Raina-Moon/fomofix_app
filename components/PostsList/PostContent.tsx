@@ -190,7 +190,6 @@ const PostContent = ({
               alignItems: "center",
             }}
           >
-            {" "}
             <View
               style={{
                 backgroundColor: white,
@@ -200,7 +199,6 @@ const PostContent = ({
                 maxWidth: 400,
               }}
             >
-              {" "}
               <View
                 style={{
                   flexDirection: "row",
@@ -209,7 +207,6 @@ const PostContent = ({
                   marginBottom: 16,
                 }}
               >
-                {" "}
                 <Text style={{ fontSize: 24, fontWeight: "semibold" }}>
                   Share this post
                 </Text>
@@ -255,7 +252,6 @@ const PostContent = ({
                   borderRadius: 4,
                 }}
               >
-                {" "}
                 <TouchableOpacity
                   onPress={() => handleShare("whatsapp")}
                   style={{
