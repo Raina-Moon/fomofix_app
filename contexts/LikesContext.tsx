@@ -23,6 +23,10 @@ export const LikesProvider = ({ children }: { children: ReactNode }) => {
       setLikedPosts(posts);
       return posts;
     } catch (err) {
+      if (err instanceof Error && err.message.includes("Unauthorized")) {
+        console.log("Unauthorized, redirecting to login");
+        throw new Error("Unauthorized");
+      }
       console.error("Failed to fetch liked posts:", err);
       return [];
     }
@@ -35,6 +39,10 @@ export const LikesProvider = ({ children }: { children: ReactNode }) => {
       );
       return liked;
     } catch (err) {
+      if (err instanceof Error && err.message.includes("Unauthorized")) {
+        console.log("Unauthorized, redirecting to login");
+        throw new Error("Unauthorized");
+      }
       console.error("Failed to get like status:", err);
       return false;
     }
@@ -52,10 +60,16 @@ export const LikesProvider = ({ children }: { children: ReactNode }) => {
       setLikedPosts((prev) => [...prev, like]);
       return await fetchLikeCount(postId);
     } catch (err) {
-      if (err instanceof Error && err.message === "Already liked") {
-        console.log("Post already liked");
-      } else {
-        console.error("Failed to like post:", err);
+      if (err instanceof Error) {
+        if (err.message.includes("Unauthorized")) {
+          console.log("Unauthorized, redirecting to login");
+          throw new Error("Unauthorized");
+        }
+        if (err.message === "Already liked") {
+          console.log("Post already liked");
+        } else {
+          console.error("Failed to like post:", err);
+        }
       }
       return await fetchLikeCount(postId);
     }
@@ -70,6 +84,10 @@ export const LikesProvider = ({ children }: { children: ReactNode }) => {
       setLikedPosts((prev) => prev.filter((like) => like.post_id !== postId));
       return await fetchLikeCount(postId);
     } catch (err) {
+      if (err instanceof Error && err.message.includes("Unauthorized")) {
+        console.log("Unauthorized, redirecting to login");
+        throw new Error("Unauthorized");
+      }
       console.error("Failed to unlike post:", err);
       return await fetchLikeCount(postId);
     }
@@ -82,8 +100,12 @@ export const LikesProvider = ({ children }: { children: ReactNode }) => {
       );
       return result.like_count;
     } catch (err) {
+      if (err instanceof Error && err.message.includes("Unauthorized")) {
+        console.log("Unauthorized, redirecting to login");
+        throw new Error("Unauthorized");
+      }
       console.error("Failed to fetch like count:", err);
-      return 0; // Return a default value in case of error
+      return 0;
     }
   };
 
