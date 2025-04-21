@@ -1,8 +1,8 @@
-
 import { createContext, useContext, useState, ReactNode } from "react";
 import { useAuth } from "./AuthContext";
 import { Post } from "@/types";
 import { fetchApi } from "@/constants/api/fetch";
+import * as ImagePicker from "expo-image-picker";
 
 interface PostState {
   nailedPosts: Post[];
@@ -14,7 +14,7 @@ interface PostState {
     imageUrl: string,
     description: string
   ) => Promise<void>;
-  uploadPostImage: (imageFile: File) => Promise<string>;
+  uploadPostImage: (asset: ImagePicker.ImagePickerAsset) => Promise<string>;
 }
 
 const PostContext = createContext<PostState | undefined>(undefined);
@@ -41,6 +41,13 @@ export const PostProvider = ({ children }: { children: ReactNode }) => {
     imageUrl: string,
     description: string
   ) => {
+    console.log("🚀 Call createPost", {
+      userId,
+      goalId,
+      imageUrl,
+      description,
+    }); //Debugging Line
+try {
     const newPost = await fetchApi<Post>("/posts", {
       method: "POST",
       body: JSON.stringify({
@@ -50,17 +57,28 @@ export const PostProvider = ({ children }: { children: ReactNode }) => {
         description,
       }),
     });
+    console.log("✅ createPost Response:", newPost); // Debugging line
     setNailedPosts((prev) => [...prev, newPost]);
-  };
+  } catch (err) {
+    console.error("❌ createPost Error:", err);
+    throw err;
+  }
+};
 
-  const uploadPostImage = async (imageFile: File) => {
+  const uploadPostImage = async (
+    asset: ImagePicker.ImagePickerAsset
+  ): Promise<string> => {
     const formData = new FormData();
-    formData.append("image", imageFile);
+    formData.append("image", {
+      uri: asset.uri,
+      name: asset.fileName || "photo.jpg",
+      type: asset.type || "image/jpeg",
+    } as any);
     const data = await fetchApi<{ imageUrl: string }>("/posts/upload-image", {
       method: "POST",
       body: formData,
-    }).then((data) => data.imageUrl);
-    return data;
+    });
+    return data.imageUrl;
   };
 
   const value: PostState = {
