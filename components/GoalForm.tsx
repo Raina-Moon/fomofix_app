@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import GlobalInput from "@/components/ui/GlobalInput";
 import GlobalButton from "@/components/ui/GlobalButton";
 import PostModal from "./PostModal";
@@ -30,18 +30,40 @@ const GoalForm = () => {
     duration: number;
   } | null>(null);
 
-  const startTimer = (duration: number) => {
+  const goalIdRef = useRef<number | null>(null);
+  const secondsLeftRef = useRef<number | null>(null);
+
+  const primary500 = useThemeColor({}, "primary-500");
+  const primary600 = useThemeColor({}, "primary-600");
+  const gray900 = useThemeColor({}, "gray-900");
+
+  useEffect(() => {
+    goalIdRef.current = goalId;
+    secondsLeftRef.current = secondsLeft;
+  }, [goalId, secondsLeft]);
+
+  const startTimer = (duration: number, newGoalId: number) => {
     setSecondsLeft(duration * 60);
+    setGoalId(newGoalId);
   };
 
   const handleFailOut = async () => {
-    if (goalId) {
-      await updateGoal(goalId, "failed out");
-      Toast.show({
-        type: "error",
-        text1: "😢 Failed out",
-      });
-      setSecondsLeft(null);
+    if (goalIdRef.current) {
+      try {
+        await updateGoal(goalIdRef.current, "failed out");
+        Toast.show({
+          type: "error",
+          text1: "😢 Failed out",
+        });
+        setSecondsLeft(null);
+        setGoalId(null);
+      } catch (err) {
+        console.error("Error updating goal:", err);
+        Toast.show({
+          type: "error",
+          text1: "Error updating goal status.",
+        });
+      }
     }
   };
 
@@ -56,13 +78,15 @@ const GoalForm = () => {
       return;
     }
 
-    startTimer(duration);
     try {
       const newGoal = await createGoal(user.id, title, duration);
-
-      setGoalId(newGoal.id);
+      startTimer(duration, newGoal.id);
+      Toast.show({
+        type: "success",
+        text1: "Goal started!",
+      });
     } catch (err) {
-      console.error(err);
+      console.error("Error creating goal:", err);
       Toast.show({
         type: "error",
         text1: "Error creating goal",
@@ -77,11 +101,29 @@ const GoalForm = () => {
     imageUrl: string;
     description: string;
   }) => {
-    if (!user || !user.id || !goalId) return;
+    if (!user?.id || !goalIdRef.current) {
+      Toast.show({
+        type: "error",
+        text1: "Cannot post: User or goal not available.",
+      });
+      return;
+    }
 
-    await createPost(user.id, goalId, imageUrl, description);
-    setShowPostModal(false);
-    router.push(`/dashboard/${user.id}`);
+    try {
+      await createPost(user.id, goalIdRef.current, imageUrl, description);
+      setShowPostModal(false);
+      Toast.show({
+        type: "success",
+        text1: "Post created!",
+      });
+      router.push(`/dashboard/${user.id}`);
+    } catch (err) {
+      console.error("Error creating post:", err);
+      Toast.show({
+        type: "error",
+        text1: "Error creating post.",
+      });
+    }
   };
 
   useEffect(() => {
@@ -123,23 +165,26 @@ const GoalForm = () => {
   useEffect(() => {
     const handleAppStateChange = async (nextAppState: AppStateStatus) => {
       if (
-        nextAppState === "background" &&
-        secondsLeft !== null &&
-        goalId !== null
+        (nextAppState === "background" || nextAppState === "inactive") &&
+        secondsLeftRef.current !== null &&
+        goalIdRef.current !== null
       ) {
         try {
-          await updateGoal(goalId, "failed out");
-          Toast.show({
-            type: "error",
-            text1: "😢 App backgrounded. Failed out.",
-          });
+          await updateGoal(goalIdRef.current, "failed out");
           setSecondsLeft(null);
+          setGoalId(null);
+          AppState.currentState === "active" &&
+            Toast.show({
+              type: "error",
+              text1: "😢 App backgrounded. Failed out.",
+            });
         } catch (err) {
           console.error("Error updating goal:", err);
-          Toast.show({
-            type: "error",
-            text1: "Error updating goal status.",
-          });
+          AppState.currentState === "active" &&
+            Toast.show({
+              type: "error",
+              text1: "Error updating goal status.",
+            });
         }
       }
     };
@@ -149,11 +194,7 @@ const GoalForm = () => {
       handleAppStateChange
     );
     return () => subscription.remove();
-  }, [secondsLeft, goalId, updateGoal]);
-
-  const primary500 = useThemeColor({}, "primary-500");
-  const primary600 = useThemeColor({}, "primary-600");
-  const gray900 = useThemeColor({}, "gray-900");
+  }, []);
 
   return (
     <>
